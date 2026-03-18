@@ -195,23 +195,13 @@ export default function QuotePage() {
         phone,
       };
 
-    console.log("Submitting payload:", payload);
-
       const { data, error: insertError } = await supabase
       .from("quote_submissions")
         .insert(payload)
         .select();
 
     if (insertError) {
-      console.error("Supabase insert error full:", JSON.stringify(insertError, null, 2));
-      console.error("Supabase insert error object:", insertError);
-
-      setError(
-        insertError?.message ||
-          insertError?.details ||
-          insertError?.hint ||
-          "Unable to submit quote."
-      );
+      setError(insertError?.message || "Something went wrong saving your quote.");
       setIsSubmitting(false);
       return;
     }
