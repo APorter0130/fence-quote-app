@@ -4,12 +4,131 @@
 - Environments: .env.local
 
 ✓ Starting...
-✓ Ready in 846ms
- GET /quote 200 in 780ms (compile: 329ms, render: 451ms)
- GET /quote 200 in 65ms (compile: 6ms, render: 59ms)
-✓ Compiled in 45ms
-✓ Compiled in 29ms
-✓ Compiled in 34ms
-✓ Compiled in 51ms
-✓ Compiled in 32ms
- GET /admin 200 in 1103ms (compile: 755ms, render: 347ms)
+✓ Ready in 862ms
+ GET /quote 200 in 782ms (compile: 338ms, render: 445ms)
+ GET /api/parcel-boundary?lat=38.8121&lon=-90.5517&radius=15 404 in 261ms (compile: 72ms, render: 188ms)
+ GET /api/parcel-boundary/route?lat=38.8121&lon=-90.5517&radius=15 404 in 662ms (compile: 579ms, render: 83ms)
+ GET /quote 200 in 64ms (compile: 6ms, render: 58ms)
+ GET /api/parcel-boundary?lat=38.77593&lon=-90.52&radius=15 404 in 179ms (compile: 3ms, render: 175ms)
+ GET /api/parcel-boundary?lat=38.8121&lon=-90.5517&radius=15 404 in 270ms (compile: 3ms, render: 267ms)
+ GET /quote 200 in 65ms (compile: 4ms, render: 62ms)
+✓ Compiled in 38ms
+ GET /api/parcel-boundary?lat=38.836148&lon=-90.90391&radius=15 404 in 213ms (compile: 4ms, render: 208ms)
+ GET /api/parcel-boundary?lat=38.836148&lon=-90.90391&radius=25 404 in 74ms (compile: 3ms, render: 71ms)
+ GET /api/parcel-boundary?lat=38.836148&lon=-90.90391&radius=50 404 in 68ms (compile: 3ms, render: 66ms)
+ GET /api/parcel-boundary?lat=38.836148&lon=-90.90391&radius=15 404 in 174ms (compile: 4ms, render: 170ms)
+ GET /api/parcel-boundary?lat=38.836148&lon=-90.90391&radius=25 404 in 73ms (compile: 2ms, render: 70ms)
+ GET /api/parcel-boundary?lat=38.836148&lon=-90.90391&radius=50 404 in 73ms (compile: 2ms, render: 71ms)
+ GET /api/parcel-boundary?lat=42.36511&lon=-83.073107&radius=15 404 in 214ms (compile: 4ms, render: 210ms)
+ GET /api/parcel-boundary?lat=38.8121&lon=-90.5517&radius=15 404 in 72ms (compile: 3ms, render: 68ms)
+ GET /api/parcel-boundary?lat=38.836148&lon=-90.90391&radius=15 404 in 180ms (compile: 3ms, render: 177ms)
+ GET /api/parcel-boundary?lat=38.836148&lon=-90.90391&radius=25 404 in 66ms (compile: 2ms, render: 63ms)
+ GET /api/parcel-boundary?lat=38.836148&lon=-90.90391&radius=50 404 in 72ms (compile: 2ms, render: 70ms)
+✓ Compiled in 20ms
+ GET /api/parcel-boundary?lat=38.836148&lon=-90.90391&radius=15 404 in 172ms (compile: 2ms, render: 170ms)
+ GET /api/parcel-boundary?lat=38.836148&lon=-90.90391&radius=25 404 in 74ms (compile: 3ms, render: 72ms)
+ GET /api/parcel-boundary?lat=38.836148&lon=-90.90391&radius=50 404 in 76ms (compile: 2ms, render: 74ms)
+ GET /api/parcel-boundary?lat=38.836148&lon=-90.90391&radius=15 404 in 174ms (compile: 4ms, render: 170ms)
+ GET /api/parcel-boundary?lat=38.836148&lon=-90.90391&radius=25 404 in 70ms (compile: 2ms, render: 68ms)
+ GET /api/parcel-boundary?lat=38.836148&lon=-90.90391&radius=50 404 in 67ms (compile: 2ms, render: 65ms)
+ GET /api/parcel-boundary?lat=38.836148&lon=-90.90391&radius=15 404 in 331ms (compile: 3ms, render: 328ms)
+ GET /api/parcel-boundary?lat=38.836148&lon=-90.90391&radius=25 404 in 68ms (compile: 2ms, render: 66ms)
+ GET /api/parcel-boundary?lat=38.836148&lon=-90.90391&radius=50 404 in 196ms (compile: 2ms, render: 194ms)
+ GET /api/parcel-boundary?lat=38.836148&lon=-90.90391&radius=15 404 in 73ms (compile: 3ms, render: 69ms)
+ GET /api/parcel-boundary?lat=38.836148&lon=-90.90391&radius=25 404 in 109ms (compile: 2ms, render: 106ms)
+ GET /api/parcel-boundary?lat=38.836148&lon=-90.90391&radius=50 404 in 72ms (compile: 2ms, render: 70ms)
+ GET /api/parcel-boundary?lat=38.77593&lon=-90.52&radius=15 404 in 205ms (compile: 4ms, render: 202ms)
+ GET /api/parcel-boundary?lat=38.77593&lon=-90.52&radius=25 404 in 74ms (compile: 2ms, render: 72ms)
+ GET /api/parcel-boundary?lat=38.77593&lon=-90.52&radius=50 404 in 77ms (compile: 2ms, render: 75ms)
+✓ Compiled in 24ms
+parcel lookup lat/lon { lat: 42.36511, lon: -83.073107, radius: 25 }
+regrid raw response {
+  "parcels": {
+    "type": "FeatureCollection",
+    "features": []
+  },
+  "buildings": {
+    "type": "FeatureCollection",
+    "features": []
+  },
+  "zoning": {
+    "type": "FeatureCollection",
+    "features": []
+  }
+}
+ GET /api/parcel-boundary?lat=42.36511&lon=-83.073107&radius=25 404 in 249ms (compile: 70ms, render: 179ms)
+parcel lookup lat/lon { lat: 38.77593, lon: -90.52, radius: 15 }
+regrid raw response {
+  "parcels": {
+    "type": "FeatureCollection",
+    "features": []
+  },
+  "buildings": {
+    "type": "FeatureCollection",
+    "features": []
+  },
+  "zoning": {
+    "type": "FeatureCollection",
+    "features": []
+  }
+}
+ GET /api/parcel-boundary?lat=38.77593&lon=-90.52&radius=15 404 in 185ms (compile: 3ms, render: 182ms)
+parcel lookup lat/lon { lat: 38.77593, lon: -90.52, radius: 25 }
+regrid raw response {
+  "parcels": {
+    "type": "FeatureCollection",
+    "features": []
+  },
+  "buildings": {
+    "type": "FeatureCollection",
+    "features": []
+  },
+  "zoning": {
+    "type": "FeatureCollection",
+    "features": []
+  }
+}
+ GET /api/parcel-boundary?lat=38.77593&lon=-90.52&radius=25 404 in 77ms (compile: 3ms, render: 74ms)
+parcel lookup lat/lon { lat: 38.77593, lon: -90.52, radius: 50 }
+regrid raw response {
+  "parcels": {
+    "type": "FeatureCollection",
+    "features": []
+  },
+  "buildings": {
+    "type": "FeatureCollection",
+    "features": []
+  },
+  "zoning": {
+    "type": "FeatureCollection",
+    "features": []
+  }
+}
+ GET /api/parcel-boundary?lat=38.77593&lon=-90.52&radius=50 404 in 78ms (compile: 2ms, render: 75ms)
+Regrid status: 200
+Regrid raw text: {"parcels":{"type":"FeatureCollection","features":[]},"buildings":{"type":"FeatureCollection","features":[]},"zoning":{"type":"FeatureCollection","features":[]}}
+ GET /api/parcel-boundary?lat=38.77593&lon=-90.52&radius=15 404 in 382ms (compile: 55ms, render: 327ms)
+Regrid status: 200
+Regrid raw text: {"parcels":{"type":"FeatureCollection","features":[]},"buildings":{"type":"FeatureCollection","features":[]},"zoning":{"type":"FeatureCollection","features":[]}}
+ GET /api/parcel-boundary?lat=38.77593&lon=-90.52&radius=25 404 in 229ms (compile: 2ms, render: 226ms)
+Regrid status: 200
+Regrid raw text: {"parcels":{"type":"FeatureCollection","features":[]},"buildings":{"type":"FeatureCollection","features":[]},"zoning":{"type":"FeatureCollection","features":[]}}
+ GET /api/parcel-boundary?lat=38.77593&lon=-90.52&radius=50 404 in 178ms (compile: 3ms, render: 176ms)
+Regrid status: 200
+Regrid raw text: {"parcels":{"type":"FeatureCollection","features":[]},"buildings":{"type":"FeatureCollection","features":[]},"zoning":{"type":"FeatureCollection","features":[]}}
+ GET /api/parcel-boundary?lat=38.77593&lon=-90.52&radius=15 404 in 256ms (compile: 54ms, render: 203ms)
+Regrid status: 200
+Regrid raw text: {"parcels":{"type":"FeatureCollection","features":[]},"buildings":{"type":"FeatureCollection","features":[]},"zoning":{"type":"FeatureCollection","features":[]}}
+ GET /api/parcel-boundary?lat=38.77593&lon=-90.52&radius=25 404 in 69ms (compile: 3ms, render: 66ms)
+Regrid status: 200
+Regrid raw text: {"parcels":{"type":"FeatureCollection","features":[]},"buildings":{"type":"FeatureCollection","features":[]},"zoning":{"type":"FeatureCollection","features":[]}}
+ GET /api/parcel-boundary?lat=38.77593&lon=-90.52&radius=50 404 in 94ms (compile: 2ms, render: 92ms)
+Regrid status: 200
+Regrid raw text: {"parcels":{"type":"FeatureCollection","features":[]},"buildings":{"type":"FeatureCollection","features":[]},"zoning":{"type":"FeatureCollection","features":[]}}
+ GET /api/parcel-boundary?lat=38.77593&lon=-90.52&radius=15 404 in 173ms (compile: 2ms, render: 171ms)
+Regrid status: 200
+Regrid raw text: {"parcels":{"type":"FeatureCollection","features":[]},"buildings":{"type":"FeatureCollection","features":[]},"zoning":{"type":"FeatureCollection","features":[]}}
+ GET /api/parcel-boundary?lat=38.77593&lon=-90.52&radius=25 404 in 74ms (compile: 2ms, render: 72ms)
+Regrid status: 200
+Regrid raw text: {"parcels":{"type":"FeatureCollection","features":[]},"buildings":{"type":"FeatureCollection","features":[]},"zoning":{"type":"FeatureCollection","features":[]}}
+ GET /api/parcel-boundary?lat=38.77593&lon=-90.52&radius=50 404 in 71ms (compile: 2ms, render: 68ms)

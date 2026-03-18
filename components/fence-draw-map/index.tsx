@@ -15,10 +15,204 @@ export default function FenceDrawMap({ address, searchTrigger, onDistanceChange 
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<mapboxgl.Map | null>(null);
   const markerRef = useRef<mapboxgl.Marker | null>(null);
+  const lastGeocodedPointRef = useRef<[number, number] | null>(null);
   const pointsRef = useRef<number[][]>([]);
   const pointMarkersRef = useRef<mapboxgl.Marker[]>([]);
   const [debug, setDebug] = useState("idle");
   const [totalFeet, setTotalFeet] = useState(0);
+  const [isParcelLoading, setIsParcelLoading] = useState(false);
+  const [keepParcelOverlay, setKeepParcelOverlay] = useState(true);
+  const [parcelMessage, setParcelMessage] = useState("");
+  const [parcelMessageIsError, setParcelMessageIsError] = useState(false);
+
+  const clearParcelBoundary = (map: mapboxgl.Map | null) => {
+    if (!map) return;
+
+    if (map.getLayer("parcel-boundary-line")) {
+      map.removeLayer("parcel-boundary-line");
+    }
+
+    if (map.getLayer("parcel-boundary-fill")) {
+      map.removeLayer("parcel-boundary-fill");
+    }
+
+    if (map.getSource("parcel-boundary")) {
+      map.removeSource("parcel-boundary");
+    }
+  };
+
+  const getBoundsFromGeometry = (
+    geometry: { type: string; coordinates: unknown } | undefined
+  ): [[number, number], [number, number]] | null => {
+    if (!geometry) return null;
+
+    const allPoints: number[][] = [];
+
+    if (geometry.type === "Polygon") {
+      const polygonCoords = geometry.coordinates as number[][][];
+      polygonCoords.forEach((ring) => ring.forEach((point) => allPoints.push(point)));
+    }
+
+    if (geometry.type === "MultiPolygon") {
+      const multiPolygonCoords = geometry.coordinates as number[][][][];
+      multiPolygonCoords.forEach((polygon) =>
+        polygon.forEach((ring) => ring.forEach((point) => allPoints.push(point)))
+      );
+    }
+
+    if (allPoints.length === 0) return null;
+
+    const lngs = allPoints.map((point) => point[0]);
+    const lats = allPoints.map((point) => point[1]);
+
+    return [
+      [Math.min(...lngs), Math.min(...lats)],
+      [Math.max(...lngs), Math.max(...lats)],
+    ];
+  };
+
+  const getPrimaryRing = (
+    geometry: { type: string; coordinates: unknown } | undefined
+  ): number[][] => {
+    if (!geometry) return [];
+
+    if (geometry.type === "Polygon") {
+      const polygonCoords = geometry.coordinates as number[][][];
+      return polygonCoords[0] ?? [];
+    }
+
+    if (geometry.type === "MultiPolygon") {
+      const multiPolygonCoords = geometry.coordinates as number[][][][];
+      return multiPolygonCoords[0]?.[0] ?? [];
+    }
+
+    return [];
+  };
+
+  const drawParcelBoundary = (parcelFeature: {
+    type: "Feature";
+    geometry: { type: string; coordinates: unknown };
+    properties?: Record<string, unknown>;
+  }) => {
+    const map = mapRef.current;
+    if (!map) return;
+
+    const sourceData = {
+      type: "FeatureCollection",
+      features: [parcelFeature],
+    };
+
+    const existingSource = map.getSource("parcel-boundary") as mapboxgl.GeoJSONSource | undefined;
+
+    if (existingSource) {
+      existingSource.setData(sourceData as never);
+    } else {
+      map.addSource("parcel-boundary", {
+        type: "geojson",
+        data: sourceData as never,
+      });
+
+      map.addLayer({
+        id: "parcel-boundary-fill",
+        type: "fill",
+        source: "parcel-boundary",
+        paint: {
+          "fill-color": "#22c55e",
+          "fill-opacity": 0.2,
+        },
+      });
+
+      map.addLayer({
+        id: "parcel-boundary-line",
+        type: "line",
+        source: "parcel-boundary",
+        paint: {
+          "line-width": 2,
+          "line-color": "#4ade80",
+        },
+      });
+    }
+
+    const ring = getPrimaryRing(parcelFeature.geometry);
+    if (ring.length >= 2) {
+      pointMarkersRef.current.forEach((marker) => marker.remove());
+      pointMarkersRef.current = [];
+      pointsRef.current = ring;
+      syncFenceLine(map);
+    }
+
+    const bounds = getBoundsFromGeometry(parcelFeature.geometry);
+    if (bounds) {
+      map.fitBounds(bounds, { padding: 80 });
+    }
+  };
+
+  const useParcelBoundary = async () => {
+    const point = lastGeocodedPointRef.current;
+    if (!point) {
+      setDebug("find address first");
+      setParcelMessage("Find Address first, then use parcel boundary.");
+      setParcelMessageIsError(true);
+      return;
+    }
+
+    setIsParcelLoading(true);
+    setDebug("loading parcel");
+    setParcelMessage("");
+    setParcelMessageIsError(false);
+
+    try {
+      const [lon, lat] = point;
+      console.log("parcel lookup lat/lon", { lat, lon, address });
+      const radii = [15, 25, 50];
+      let found = false;
+      let lastError = "No parcel boundary found for this location.";
+
+      for (const radius of radii) {
+        const res = await fetch(`/api/parcel-boundary?lat=${lat}&lon=${lon}&radius=${radius}`, {
+          method: "GET",
+          cache: "no-store",
+        });
+
+        const payload = (await res.json()) as {
+          error?: string;
+          details?: string;
+          parcel?: {
+            type: "Feature";
+            geometry: { type: string; coordinates: unknown };
+            properties?: Record<string, unknown>;
+          };
+        };
+
+        if (res.ok && payload.parcel) {
+          drawParcelBoundary(payload.parcel);
+          setDebug("parcel loaded");
+          setParcelMessage(`Parcel boundary loaded (radius ${radius}m).`);
+          setParcelMessageIsError(false);
+          found = true;
+          break;
+        }
+
+        lastError = payload.details ?? payload.error ?? "parcel not found";
+
+        if (res.status !== 404) {
+          break;
+        }
+      }
+
+      if (!found) {
+        setDebug(lastError);
+        setParcelMessage(lastError);
+        setParcelMessageIsError(true);
+      }
+    } catch {
+      setDebug("parcel lookup failed");
+      setParcelMessage("Parcel lookup failed. Please try again.");
+      setParcelMessageIsError(true);
+    } finally {
+      setIsParcelLoading(false);
+    }
+  };
 
   const syncFenceLine = (map: mapboxgl.Map) => {
     const geojson = {
@@ -79,6 +273,10 @@ export default function FenceDrawMap({ address, searchTrigger, onDistanceChange 
     pointMarkersRef.current.forEach((marker) => marker.remove());
     pointMarkersRef.current = [];
 
+    if (!keepParcelOverlay) {
+      clearParcelBoundary(mapRef.current);
+    }
+
     const source = mapRef.current?.getSource("fence-line") as mapboxgl.GeoJSONSource | undefined;
 
     if (source) {
@@ -98,6 +296,10 @@ export default function FenceDrawMap({ address, searchTrigger, onDistanceChange 
 
   const undoLastPoint = () => {
     if (pointsRef.current.length === 0) return;
+
+    if (!keepParcelOverlay) {
+      clearParcelBoundary(mapRef.current);
+    }
 
     pointsRef.current.pop();
     const lastMarker = pointMarkersRef.current.pop();
@@ -160,6 +362,10 @@ export default function FenceDrawMap({ address, searchTrigger, onDistanceChange 
         });
 
         map.on("click", (e) => {
+          if (!keepParcelOverlay) {
+            clearParcelBoundary(map);
+          }
+
           const point = [e.lngLat.lng, e.lngLat.lat];
           pointsRef.current.push(point);
 
@@ -195,7 +401,7 @@ export default function FenceDrawMap({ address, searchTrigger, onDistanceChange 
         mapRef.current = null;
       }
     };
-  }, []);
+  }, [keepParcelOverlay]);
 
   useEffect(() => {
     if (!mapRef.current || !address?.trim()) return;
@@ -211,6 +417,10 @@ export default function FenceDrawMap({ address, searchTrigger, onDistanceChange 
       .then((data) => {
         const coords = data?.features?.[0]?.center;
         if (!coords || !mapRef.current) return;
+
+        lastGeocodedPointRef.current = [coords[0], coords[1]];
+        setParcelMessage("");
+        setParcelMessageIsError(false);
 
         mapRef.current.flyTo({
           center: coords,
@@ -234,6 +444,14 @@ export default function FenceDrawMap({ address, searchTrigger, onDistanceChange 
       <div className="flex items-center gap-2">
         <button
           type="button"
+          onClick={useParcelBoundary}
+          disabled={isParcelLoading}
+          className="inline-flex items-center justify-center rounded-xl border border-emerald-400/30 bg-emerald-500/15 px-3 py-2 text-xs font-medium text-emerald-300 transition hover:bg-emerald-500/25 disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          {isParcelLoading ? "Loading Parcel..." : "Use Parcel Boundary"}
+        </button>
+        <button
+          type="button"
           onClick={undoLastPoint}
           className="inline-flex items-center justify-center rounded-xl border border-white/10 bg-white/[0.05] px-3 py-2 text-xs font-medium text-white transition hover:bg-white/[0.08]"
         >
@@ -246,7 +464,26 @@ export default function FenceDrawMap({ address, searchTrigger, onDistanceChange 
         >
           Clear Fence
         </button>
+        <button
+          type="button"
+          onClick={() => setKeepParcelOverlay((prev) => !prev)}
+          className="inline-flex items-center justify-center rounded-xl border border-white/10 bg-white/[0.05] px-3 py-2 text-xs font-medium text-white transition hover:bg-white/[0.08]"
+        >
+          {keepParcelOverlay ? "Parcel Overlay: Keep" : "Parcel Overlay: Auto-clear"}
+        </button>
       </div>
+
+      {parcelMessage ? (
+        <div
+          className={
+            parcelMessageIsError
+              ? "rounded-xl border border-rose-400/35 bg-rose-500/10 px-3 py-2 text-xs text-rose-200"
+              : "rounded-xl border border-emerald-400/35 bg-emerald-500/10 px-3 py-2 text-xs text-emerald-200"
+          }
+        >
+          {parcelMessage}
+        </div>
+      ) : null}
 
       <div className="w-full rounded-2xl border border-white/10 overflow-hidden">
         <div
