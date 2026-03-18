@@ -1,7 +1,7 @@
 "use client";
 
-import dynamic from "next/dynamic";
 import { FormEvent, useMemo, useState } from "react";
+import FenceDrawMap from "../../components/fence-draw-map";
 import { calculateQuoteEstimate } from "../../lib/pricing";
 import { contractors } from "../../data/contractors";
 import { supabase } from "../../lib/supabase";
@@ -12,20 +12,14 @@ import type {
   YardGrade,
 } from "../../types/quote";
 
-const FenceDrawMap = dynamic(() => import("../../components/fence-draw-map"), {
-  ssr: false,
-  loading: () => (
-    <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-4 text-sm text-slate-300">
-      Loading map...
-    </div>
-  ),
-});
-
 type FieldKey =
   | "customerName"
   | "customerEmail"
   | "customerPhone"
-  | "address"
+  | "streetAddress"
+  | "city"
+  | "state"
+  | "zip"
   | "linearFeet"
   | "gates";
 
@@ -35,29 +29,50 @@ export default function QuotePage() {
   const [customerName, setCustomerName] = useState("");
   const [customerEmail, setCustomerEmail] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
-  const [address, setAddress] = useState("");
+  const [streetAddress, setStreetAddress] = useState("");
+  const [city, setCity] = useState("");
+  const [state, setState] = useState("");
+  const [zip, setZip] = useState("");
   const [fenceType, setFenceType] = useState<FenceType>("cedar");
   const [fenceHeight, setFenceHeight] = useState<FenceHeight>("6");
   const [yardGrade, setYardGrade] = useState<YardGrade>("flat");
   const [linearFeet, setLinearFeet] = useState(100);
   const [gates, setGates] = useState(1);
   const [tearOut, setTearOut] = useState(false);
-  const [showMap, setShowMap] = useState(true);
+  const [showMap, setShowMap] = useState(false);
+  const [searchTrigger, setSearchTrigger] = useState(0);
 
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<Partial<Record<FieldKey, string>>>({});
 
+  const fullAddress = [streetAddress, city, state, zip]
+    .filter(Boolean)
+    .join(", ");
+
+  const canSearch =
+    streetAddress.trim().length > 3 &&
+    city.trim().length > 1 &&
+    state.trim().length === 2 &&
+    zip.trim().length === 5;
+
   const quoteInputs: QuoteInputs = {
-    customerName,
-    address,
+    name: customerName,
+    email: customerEmail,
+    phone: customerPhone,
+    address: fullAddress,
+    streetAddress,
+    city,
+    state,
+    zip,
     fenceType,
     fenceHeight,
     yardGrade,
     linearFeet,
     gates,
     tearOut,
+    customerName,
   };
 
   const estimate = useMemo(() => {
@@ -81,8 +96,20 @@ export default function QuotePage() {
       nextErrors.customerPhone = "Please enter your phone number.";
     }
 
-    if (!address.trim()) {
-      nextErrors.address = "Please enter the project address.";
+    if (!streetAddress.trim()) {
+      nextErrors.streetAddress = "Please enter the street address.";
+    }
+
+    if (!city.trim()) {
+      nextErrors.city = "Please enter the city.";
+    }
+
+    if (!state.trim()) {
+      nextErrors.state = "Please enter the state.";
+    }
+
+    if (!zip.trim()) {
+      nextErrors.zip = "Please enter the ZIP code.";
     }
 
     if (linearFeet <= 0) {
@@ -135,29 +162,50 @@ export default function QuotePage() {
 
     setIsSubmitting(true);
 
-    const { error: insertError } = await supabase
-      .from("quote_submissions")
-      .insert({
-        customer_name: customerName,
-        customer_email: customerEmail,
-        customer_phone: customerPhone,
-        address,
+    const name = customerName;
+    const email = customerEmail;
+    const phone = customerPhone;
+    const estimateTotal = estimate.subtotal;
+
+      const payload = {
+        customer_name: name,
+        customer_email: email,
+        customer_phone: phone,
+        address: fullAddress,
+        street_address: streetAddress,
+        city,
+        state,
+        zip,
         fence_type: fenceType,
         fence_height: fenceHeight,
         yard_grade: yardGrade,
         linear_feet: linearFeet,
         gates,
-        tear_out: tearOut,
-        estimate_low: estimate.low,
-        estimate_high: estimate.high,
-        estimate_subtotal: estimate.subtotal,
-        contractor_id: selectedContractor.id,
-        contractor_name: selectedContractor.name,
-      });
+        estimate_total: estimateTotal,
+        status: "new",
+        // optional compatibility fields if you want to keep them too
+        name,
+        email,
+        phone,
+      };
+
+    console.log("Submitting payload:", payload);
+
+      const { data, error: insertError } = await supabase
+      .from("quote_submissions")
+        .insert(payload)
+        .select();
 
     if (insertError) {
-      console.error("Supabase insert error:", insertError);
-      setError(insertError.message);
+      console.error("Supabase insert error full:", JSON.stringify(insertError, null, 2));
+      console.error("Supabase insert error object:", insertError);
+
+      setError(
+        insertError?.message ||
+          insertError?.details ||
+          insertError?.hint ||
+          "Unable to submit quote."
+      );
       setIsSubmitting(false);
       return;
     }
@@ -207,7 +255,7 @@ export default function QuotePage() {
                     <p><span className="font-medium text-white">Name:</span> {customerName}</p>
                     <p><span className="font-medium text-white">Email:</span> {customerEmail}</p>
                     <p><span className="font-medium text-white">Phone:</span> {customerPhone}</p>
-                    <p><span className="font-medium text-white">Address:</span> {address}</p>
+                    <p><span className="font-medium text-white">Address:</span> {fullAddress}</p>
                   </div>
                 </div>
 
@@ -334,18 +382,81 @@ export default function QuotePage() {
                   {fieldErrors.customerPhone ? <p className="mt-2 text-xs text-rose-300">{fieldErrors.customerPhone}</p> : null}
                 </div>
 
-                <div className="md:col-span-2">
-                  <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-slate-300">Project Address</label>
-                  <input
-                    value={address}
-                    onChange={(e) => {
-                      setAddress(e.target.value);
-                      clearFieldError("address");
-                    }}
-                    className={inputClass("address", address.trim().length > 0)}
-                    placeholder="123 Main St"
-                  />
-                  {fieldErrors.address ? <p className="mt-2 text-xs text-rose-300">{fieldErrors.address}</p> : null}
+                <div className="grid gap-4 md:col-span-2 md:grid-cols-2">
+                  <div className="md:col-span-2">
+                    <label className="mb-2 block text-sm font-medium text-white">
+                      Street Address
+                    </label>
+                    <input
+                      type="text"
+                      value={streetAddress}
+                      onChange={(e) => {
+                        setStreetAddress(e.target.value);
+                        clearFieldError("streetAddress");
+                      }}
+                      placeholder="123 Main St"
+                      className={inputClass("streetAddress", streetAddress.trim().length > 0)}
+                    />
+                    {fieldErrors.streetAddress ? <p className="mt-2 text-xs text-rose-300">{fieldErrors.streetAddress}</p> : null}
+                  </div>
+
+                  <div>
+                    <label className="mb-2 block text-sm font-medium text-white">City</label>
+                    <input
+                      type="text"
+                      value={city}
+                      onChange={(e) => {
+                        setCity(e.target.value);
+                        clearFieldError("city");
+                      }}
+                      placeholder="Chesterfield"
+                      className={inputClass("city", city.trim().length > 0)}
+                    />
+                    {fieldErrors.city ? <p className="mt-2 text-xs text-rose-300">{fieldErrors.city}</p> : null}
+                  </div>
+
+                  <div>
+                    <label className="mb-2 block text-sm font-medium text-white">State</label>
+                    <input
+                      type="text"
+                      value={state}
+                      onChange={(e) => {
+                        setState(e.target.value.toUpperCase().slice(0, 2));
+                        clearFieldError("state");
+                      }}
+                      placeholder="MO"
+                      className={inputClass("state", state.trim().length > 0)}
+                      maxLength={2}
+                    />
+                    {fieldErrors.state ? <p className="mt-2 text-xs text-rose-300">{fieldErrors.state}</p> : null}
+                  </div>
+
+                  <div>
+                    <label className="mb-2 block text-sm font-medium text-white">ZIP Code</label>
+                    <input
+                      type="text"
+                      value={zip}
+                      onChange={(e) => {
+                        setZip(e.target.value.replace(/\D/g, "").slice(0, 5));
+                        clearFieldError("zip");
+                      }}
+                      placeholder="63017"
+                      className={inputClass("zip", zip.trim().length > 0)}
+                      inputMode="numeric"
+                    />
+                    {fieldErrors.zip ? <p className="mt-2 text-xs text-rose-300">{fieldErrors.zip}</p> : null}
+                  </div>
+
+                  <div className="flex items-end">
+                    <button
+                      type="button"
+                      disabled={!canSearch}
+                      onClick={() => setSearchTrigger((prev) => prev + 1)}
+                      className="w-full rounded-2xl border border-white/10 bg-white/[0.05] px-4 py-3 text-sm font-medium text-white transition hover:bg-white/[0.08] disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      Find Address
+                    </button>
+                  </div>
                 </div>
 
                 <div className="md:col-span-2">
@@ -358,21 +469,19 @@ export default function QuotePage() {
                   </button>
                 </div>
 
-                {showMap ? (
+                {showMap && (
                   <div className="md:col-span-2">
-                    <div className="rounded-3xl border border-emerald-400 bg-emerald-500/10 p-4 text-white">
-                      MAP WRAPPER IS HERE
-                      <div className="mt-4">
-                        <FenceDrawMap
-                          address={address}
-                          onDistanceChange={(feet) => {
-                            setLinearFeet(feet);
-                          }}
-                        />
-                      </div>
-                    </div>
+                  <div className="rounded-3xl border border-white/10 bg-white/[0.03] p-4">
+                      <FenceDrawMap
+                        address={fullAddress}
+                        searchTrigger={searchTrigger}
+                        onDistanceChange={(feet) => {
+                          setLinearFeet(feet);
+                        }}
+                      />
                   </div>
-                ) : null}
+                  </div>
+                )}
 
                 <div>
                   <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-slate-300">Fence Type</label>

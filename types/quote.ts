@@ -3,14 +3,21 @@ export type FenceHeight = "4" | "6" | "8";
 export type YardGrade = "flat" | "moderate" | "steep";
 
 export type QuoteInputs = {
-  customerName: string;
+  name: string;
+  email: string;
+  phone: string;
   address: string;
+  streetAddress: string;
+  city: string;
+  state: string;
+  zip: string;
   fenceType: FenceType;
   fenceHeight: FenceHeight;
   yardGrade: YardGrade;
   linearFeet: number;
   gates: number;
-  tearOut: boolean;
+  tearOut?: boolean;
+  customerName?: string;
 };
 
 export type QuoteEstimate = {

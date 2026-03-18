@@ -3,10 +3,17 @@ import { createSupabaseClient } from "../../lib/supabase";
 
 type QuoteSubmission = {
   id: string;
+  name: string;
+  email?: string;
+  phone?: string;
   customer_name: string;
   customer_email?: string;
   customer_phone?: string;
   address: string;
+  street_address?: string;
+  city?: string;
+  state?: string;
+  zip?: string;
   fence_type: string;
   fence_height: string;
   yard_grade: string;
@@ -15,6 +22,7 @@ type QuoteSubmission = {
   tear_out: boolean;
   estimate_low: number;
   estimate_high: number;
+  estimate_total?: number;
   estimate_subtotal?: number;
   contractor_id: string;
   contractor_name?: string;
@@ -26,17 +34,69 @@ type QuoteSubmission = {
 async function getQuoteSubmissions(): Promise<QuoteSubmission[]> {
   const supabase = createSupabaseClient();
 
+  const detailedSelect = `
+    id,
+    created_at,
+    customer_name,
+    customer_email,
+    customer_phone,
+    address,
+    street_address,
+    city,
+    state,
+    zip,
+    fence_type,
+    fence_height,
+    linear_feet,
+    gates,
+    yard_grade,
+    tear_out,
+    estimate_low,
+    estimate_high,
+    estimate_total:estimate_subtotal,
+    estimate_subtotal,
+    contractor_id,
+    contractor_name,
+    internal_notes,
+    status
+  `;
+
   const { data, error } = await supabase
     .from("quote_submissions")
-    .select("*")
+    .select(detailedSelect)
     .order("created_at", { ascending: false });
+
+  if (error && (error.message.toLowerCase().includes("column") || error.message.toLowerCase().includes("schema cache"))) {
+    const { data: fallbackData, error: fallbackError } = await supabase
+      .from("quote_submissions")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    if (fallbackError) {
+      console.error("Error loading quote submissions:", fallbackError);
+      return [];
+    }
+
+    return (fallbackData ?? []).map((row) => ({
+      ...row,
+      name: row.customer_name,
+      email: row.customer_email,
+      phone: row.customer_phone,
+      estimate_total: row.estimate_subtotal,
+    }));
+  }
 
   if (error) {
     console.error("Error loading quote submissions:", error);
     return [];
   }
 
-  return data ?? [];
+  return (data ?? []).map((row) => ({
+    ...row,
+    name: row.customer_name,
+    email: row.customer_email,
+    phone: row.customer_phone,
+  }));
 }
 
 export default async function AdminPage() {

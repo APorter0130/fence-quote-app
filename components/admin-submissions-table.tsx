@@ -5,10 +5,17 @@ import { createSupabaseClient } from "../lib/supabase";
 
 type QuoteSubmission = {
   id: string;
+  name: string;
+  email?: string;
+  phone?: string;
   customer_name: string;
   customer_email?: string;
   customer_phone?: string;
   address: string;
+  street_address?: string;
+  city?: string;
+  state?: string;
+  zip?: string;
   fence_type: string;
   fence_height: string;
   yard_grade: string;
@@ -17,6 +24,7 @@ type QuoteSubmission = {
   tear_out: boolean;
   estimate_low: number;
   estimate_high: number;
+  estimate_total?: number;
   estimate_subtotal?: number;
   contractor_id: string;
   contractor_name?: string;
@@ -117,10 +125,13 @@ export default function AdminSubmissionsTable({
         <table className="min-w-full border-collapse">
           <thead className="bg-white/[0.03]">
             <tr className="text-left text-xs font-semibold uppercase tracking-[0.14em] text-slate-300">
-              <th className="p-4">Customer</th>
-              <th className="p-4">Email</th>
+              <th className="p-4">Name</th>
               <th className="p-4">Phone</th>
-              <th className="p-4">Address</th>
+              <th className="p-4">Email</th>
+              <th className="p-4">Street</th>
+              <th className="p-4">City</th>
+              <th className="p-4">State</th>
+              <th className="p-4">ZIP</th>
               <th className="p-4">Fence</th>
               <th className="p-4">Project</th>
               <th className="p-4">Estimate</th>
@@ -136,21 +147,27 @@ export default function AdminSubmissionsTable({
                 className="border-t border-white/10 align-top text-sm text-slate-200 transition hover:bg-white/[0.025]"
               >
                 <td className="p-4">
-                  <div className="font-semibold">{submission.customer_name}</div>
+                  <div className="font-semibold">{submission.name || submission.customer_name}</div>
                   <div className="mt-2 text-xs text-slate-400">
                     {submission.contractor_name ?? submission.contractor_id}
                   </div>
                 </td>
 
                 <td className="p-4 text-slate-300">
-                  {submission.customer_email || "No email provided"}
+                  {submission.phone || submission.customer_phone || "No phone provided"}
                 </td>
 
                 <td className="p-4 text-slate-300">
-                  {submission.customer_phone || "No phone provided"}
+                  {submission.email || submission.customer_email || "No email provided"}
                 </td>
 
-                <td className="p-4 text-slate-300">{submission.address}</td>
+                <td className="p-4 text-slate-300">{submission.street_address || "-"}</td>
+
+                <td className="p-4 text-slate-300">{submission.city || "-"}</td>
+
+                <td className="p-4 text-slate-300">{submission.state || "-"}</td>
+
+                <td className="p-4 text-slate-300">{submission.zip || "-"}</td>
 
                 <td className="p-4 text-slate-300">
                   <div>{submission.fence_type}</div>
@@ -167,8 +184,9 @@ export default function AdminSubmissionsTable({
                 </td>
 
                 <td className="p-4 font-semibold">
-                  ${submission.estimate_low.toLocaleString()} - $
-                  {submission.estimate_high.toLocaleString()}
+                  {submission.estimate_total != null
+                    ? `$${submission.estimate_total.toLocaleString()}`
+                    : `$${submission.estimate_low.toLocaleString()} - $${submission.estimate_high.toLocaleString()}`}
                 </td>
 
                 <td className="p-4">
