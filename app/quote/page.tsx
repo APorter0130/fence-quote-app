@@ -181,6 +181,12 @@ export default function QuotePage() {
         yard_grade: yardGrade,
         linear_feet: linearFeet,
         gates,
+        tear_out: tearOut ?? false,
+        contractor_id: selectedContractor.id,
+        contractor_name: selectedContractor.name,
+        estimate_low: estimate.low,
+        estimate_high: estimate.high,
+        estimate_subtotal: estimate.subtotal,
         estimate_total: estimateTotal,
         status: "new",
         // optional compatibility fields if you want to keep them too
