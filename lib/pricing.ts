@@ -1,8 +1,5 @@
 import { supabase } from "./supabase";
-
-export type FenceType = "cedar" | "vinyl" | "chain-link" | "aluminum";
-export type FenceHeight = "4" | "6" | "8";
-export type YardGrade = "flat" | "moderate" | "steep";
+import type { FenceHeight, FenceType, YardGrade } from "../types/quote";
 
 export type ContractorPricingRow = {
   id: string;
@@ -37,7 +34,8 @@ export type QuoteEstimateResult = {
   baseTotal: number;
   gateTotal: number;
   tearOutTotal: number;
-  pricing: ContractorPricingRow;
+  pricing: ContractorPricingRow | null;
+  unavailable: boolean;
 };
 
 export type ContractorPricingOption = Pick<ContractorPricingRow, "fence_type" | "fence_height">;
@@ -117,17 +115,37 @@ export function calculateQuoteFromPricing(
     gateTotal: Math.round(gateTotal),
     tearOutTotal: Math.round(tearOutTotal),
     pricing,
+    unavailable: false,
+  };
+}
+
+export function createUnavailableEstimate(): QuoteEstimateResult {
+  return {
+    lowEstimate: 0,
+    highEstimate: 0,
+    subtotal: 0,
+    baseTotal: 0,
+    gateTotal: 0,
+    tearOutTotal: 0,
+    pricing: null,
+    unavailable: true,
   };
 }
 
 export async function calculateQuoteEstimate(
   inputs: QuoteEstimateInputs
 ): Promise<QuoteEstimateResult> {
-  const pricing = await getContractorPricing(
-    inputs.contractorId,
-    inputs.fenceType,
-    inputs.fenceHeight
-  );
+  let pricing: ContractorPricingRow;
+
+  try {
+    pricing = await getContractorPricing(
+      inputs.contractorId,
+      inputs.fenceType,
+      inputs.fenceHeight
+    );
+  } catch {
+    return createUnavailableEstimate();
+  }
 
   return calculateQuoteFromPricing(pricing, {
     linearFeet: inputs.linearFeet,

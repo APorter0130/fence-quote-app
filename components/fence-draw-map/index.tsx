@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import mapboxgl from "mapbox-gl";
 import { length as turfLength, lineString } from "@turf/turf";
 import "mapbox-gl/dist/mapbox-gl.css";
@@ -19,11 +19,17 @@ export default function FenceDrawMap({ address, searchTrigger, onDistanceChange 
   const pointsRef = useRef<number[][]>([]);
   const pointMarkersRef = useRef<mapboxgl.Marker[]>([]);
   const [debug, setDebug] = useState("idle");
+  const [geocodeDebug, setGeocodeDebug] = useState("");
   const [totalFeet, setTotalFeet] = useState(0);
   const [isParcelLoading, setIsParcelLoading] = useState(false);
   const [keepParcelOverlay, setKeepParcelOverlay] = useState(true);
   const [parcelMessage, setParcelMessage] = useState("");
   const [parcelMessageIsError, setParcelMessageIsError] = useState(false);
+  const onDistanceChangeRef = useRef<Props["onDistanceChange"]>(onDistanceChange);
+
+  useEffect(() => {
+    onDistanceChangeRef.current = onDistanceChange;
+  }, [onDistanceChange]);
 
   const clearParcelBoundary = (map: mapboxgl.Map | null) => {
     if (!map) return;
@@ -89,11 +95,13 @@ export default function FenceDrawMap({ address, searchTrigger, onDistanceChange 
     return [];
   };
 
-  const drawParcelBoundary = (parcelFeature: {
-    type: "Feature";
-    geometry: { type: string; coordinates: unknown };
-    properties?: Record<string, unknown>;
-  }) => {
+  const drawParcelBoundary = (
+    parcelFeature: {
+      type: "Feature";
+      geometry: { type: string; coordinates: unknown };
+      properties?: Record<string, unknown>;
+    }
+  ) => {
     const map = mapRef.current;
     if (!map) return;
 
@@ -157,14 +165,15 @@ export default function FenceDrawMap({ address, searchTrigger, onDistanceChange 
     }
 
     setIsParcelLoading(true);
-    setDebug("loading parcel");
+    setDebug("checking parcel data");
     setParcelMessage("");
     setParcelMessageIsError(false);
 
     try {
       const [lon, lat] = point;
+      setDebug(`parcel lookup lat=${lat.toFixed(6)} lon=${lon.toFixed(6)}`);
       console.log("parcel lookup lat/lon", { lat, lon, address });
-      const radii = [15, 25, 50];
+      const radii = [25, 50, 100, 250, 500];
       let found = false;
       let lastError = "No parcel boundary found for this location.";
 
@@ -177,6 +186,8 @@ export default function FenceDrawMap({ address, searchTrigger, onDistanceChange 
         const payload = (await res.json()) as {
           error?: string;
           details?: string;
+          source?: string;
+          note?: string;
           parcel?: {
             type: "Feature";
             geometry: { type: string; coordinates: unknown };
@@ -201,8 +212,12 @@ export default function FenceDrawMap({ address, searchTrigger, onDistanceChange 
       }
 
       if (!found) {
-        setDebug(lastError);
-        setParcelMessage(lastError);
+        const noParcelMessage =
+          "Parcel data is unavailable for this address from Regrid. You can still trace your fence manually on the map.";
+        const isNoParcel = /no parcel found/i.test(lastError);
+
+        setDebug(isNoParcel ? "parcel data unavailable" : lastError);
+        setParcelMessage(isNoParcel ? noParcelMessage : lastError);
         setParcelMessageIsError(true);
       }
     } catch {
@@ -214,7 +229,7 @@ export default function FenceDrawMap({ address, searchTrigger, onDistanceChange 
     }
   };
 
-  const syncFenceLine = (map: mapboxgl.Map) => {
+  const syncFenceLine = useCallback((map: mapboxgl.Map) => {
     const geojson = {
       type: "Feature",
       geometry: {
@@ -251,22 +266,14 @@ export default function FenceDrawMap({ address, searchTrigger, onDistanceChange 
       const feet = km * 3280.84;
       const roundedFeet = Math.round(feet);
 
-      const lngs = pointsRef.current.map((point) => point[0]);
-      const lats = pointsRef.current.map((point) => point[1]);
-      const bbox: [[number, number], [number, number]] = [
-        [Math.min(...lngs), Math.min(...lats)],
-        [Math.max(...lngs), Math.max(...lats)],
-      ];
-      map.fitBounds(bbox, { padding: 80 });
-
       setTotalFeet(roundedFeet);
-      onDistanceChange?.(roundedFeet);
+      onDistanceChangeRef.current?.(roundedFeet);
       return;
     }
 
     setTotalFeet(0);
-    onDistanceChange?.(0);
-  };
+    onDistanceChangeRef.current?.(0);
+  }, []);
 
   const clearDrawing = () => {
     pointsRef.current = [];
@@ -401,7 +408,7 @@ export default function FenceDrawMap({ address, searchTrigger, onDistanceChange 
         mapRef.current = null;
       }
     };
-  }, [keepParcelOverlay]);
+  }, [keepParcelOverlay, syncFenceLine]);
 
   useEffect(() => {
     if (!mapRef.current || !address?.trim()) return;
@@ -411,14 +418,22 @@ export default function FenceDrawMap({ address, searchTrigger, onDistanceChange 
     const encoded = encodeURIComponent(address);
 
     fetch(
-      `https://api.mapbox.com/geocoding/v5/mapbox.places/${encoded}.json?access_token=${token}`
+      `https://api.mapbox.com/geocoding/v5/mapbox.places/${encoded}.json?access_token=${token}&limit=5&types=address&autocomplete=false&country=us`
     )
       .then((res) => res.json())
       .then((data) => {
-        const coords = data?.features?.[0]?.center;
-        if (!coords || !mapRef.current) return;
+        const bestFeature = data?.features?.[0];
+        const coords = bestFeature?.center;
+
+        if (!coords || !mapRef.current) {
+          setGeocodeDebug("No address-level geocode result");
+          return;
+        }
 
         lastGeocodedPointRef.current = [coords[0], coords[1]];
+        setGeocodeDebug(
+          `${bestFeature.place_name ?? "Unknown"} (lon ${coords[0].toFixed(6)}, lat ${coords[1].toFixed(6)})`
+        );
         setParcelMessage("");
         setParcelMessageIsError(false);
 
@@ -433,12 +448,14 @@ export default function FenceDrawMap({ address, searchTrigger, onDistanceChange 
       })
       .catch((err) => {
         console.error("Geocode failed:", err);
+        setGeocodeDebug("Geocode failed");
       });
   }, [searchTrigger, address]);
 
   return (
     <div className="space-y-2">
       <div className="text-xs text-slate-400">Debug: {debug}</div>
+      <div className="text-xs text-slate-400">Geocode: {geocodeDebug || "none"}</div>
       <div className="text-sm font-medium text-emerald-300">Total: {totalFeet} ft</div>
 
       <div className="flex items-center gap-2">

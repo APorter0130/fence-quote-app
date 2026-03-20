@@ -5,14 +5,16 @@ import { useSearchParams } from "next/navigation";
 import FenceDrawMap from "../../components/fence-draw-map";
 import {
   calculateQuoteFromPricing,
-  getContractorPricing,
-  getContractorPricingOptions,
-  type ContractorPricingOption,
-  type ContractorPricingRow,
+  createUnavailableEstimate,
 } from "../../lib/pricing";
-import { contractors, type Contractor } from "../../data/contractors";
-import { resolveContractor } from "../../lib/contractors";
+import { buildQuotePayload } from "../../lib/quote-payload";
 import { supabase } from "../../lib/supabase";
+import { useContractorConfig } from "../../lib/use-contractor-config";
+import {
+  FENCE_HEIGHTS,
+  FENCE_TYPES,
+  YARD_GRADES,
+} from "../../types/quote";
 import type {
   FenceHeight,
   FenceType,
@@ -33,16 +35,6 @@ type FieldKey =
 export default function QuotePage() {
   const searchParams = useSearchParams();
   const contractorParam = searchParams.get("contractor")?.trim() ?? "";
-
-  const [selectedContractor, setSelectedContractor] = useState<Contractor | null>(
-    contractors[0]
-  );
-  const [isContractorLoading, setIsContractorLoading] = useState(false);
-  const [contractorError, setContractorError] = useState("");
-  const [selectedPricing, setSelectedPricing] = useState<ContractorPricingRow | null>(null);
-  const [availablePricingOptions, setAvailablePricingOptions] = useState<ContractorPricingOption[]>([]);
-  const [isPricingLoading, setIsPricingLoading] = useState(false);
-  const [pricingError, setPricingError] = useState("");
 
   const [customerName, setCustomerName] = useState("");
   const [customerEmail, setCustomerEmail] = useState("");
@@ -65,6 +57,14 @@ export default function QuotePage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<Partial<Record<FieldKey, string>>>({});
 
+  const {
+    contractor: selectedContractor,
+    pricing: selectedPricing,
+    pricingOptions: availablePricingOptions,
+    isLoading: isContractorConfigLoading,
+    error: contractorConfigError,
+  } = useContractorConfig(contractorParam, fenceType, fenceHeight);
+
   const fullAddress = [streetAddress, city, state, zip]
     .filter(Boolean)
     .join(", ");
@@ -76,170 +76,42 @@ export default function QuotePage() {
     zip.trim().length === 5;
 
   useEffect(() => {
-    let isCancelled = false;
-
-    async function loadContractor() {
-      if (!contractorParam) {
-        setSelectedContractor(contractors[0]);
-        setContractorError("");
-        setIsContractorLoading(false);
-        return;
-      }
-
-      setIsContractorLoading(true);
-      setContractorError("");
-
-      try {
-        const contractor = await resolveContractor(contractorParam);
-
-        if (isCancelled) {
-          return;
-        }
-
-        if (!contractor) {
-          setSelectedContractor(null);
-          setContractorError("Invalid contractor configuration. Please use a valid quote link.");
-          return;
-        }
-
-        setSelectedContractor(contractor);
-      } catch {
-        if (isCancelled) {
-          return;
-        }
-
-        setSelectedContractor(null);
-        setContractorError("Unable to load contractor configuration right now. Please try again.");
-      } finally {
-        if (!isCancelled) {
-          setIsContractorLoading(false);
-        }
-      }
+    if (availablePricingOptions.length === 0) {
+      return;
     }
 
-    loadContractor();
+    const hasCurrentSelection = availablePricingOptions.some(
+      (option) => option.fence_type === fenceType && option.fence_height === fenceHeight
+    );
 
-    return () => {
-      isCancelled = true;
-    };
-  }, [contractorParam]);
-
-  useEffect(() => {
-    let isCancelled = false;
-
-    async function loadPricingOptions() {
-      if (!selectedContractor) {
-        setAvailablePricingOptions([]);
-        return;
-      }
-
-      try {
-        const pricingOptions = await getContractorPricingOptions(selectedContractor.id);
-
-        if (isCancelled) {
-          return;
-        }
-
-        setAvailablePricingOptions(pricingOptions);
-
-        if (pricingOptions.length === 0) {
-          return;
-        }
-
-        const hasCurrentSelection = pricingOptions.some(
-          (option) => option.fence_type === fenceType && option.fence_height === fenceHeight
-        );
-
-        if (hasCurrentSelection) {
-          return;
-        }
-
-        const matchingTypeOption = pricingOptions.find(
-          (option) => option.fence_type === fenceType
-        );
-
-        if (matchingTypeOption) {
-          setFenceHeight(matchingTypeOption.fence_height);
-          return;
-        }
-
-        setFenceType(pricingOptions[0].fence_type);
-        setFenceHeight(pricingOptions[0].fence_height);
-      } catch {
-        if (isCancelled) {
-          return;
-        }
-
-        setAvailablePricingOptions([]);
-      }
+    if (hasCurrentSelection) {
+      return;
     }
 
-    loadPricingOptions();
+    const matchingTypeOption = availablePricingOptions.find(
+      (option) => option.fence_type === fenceType
+    );
 
-    return () => {
-      isCancelled = true;
-    };
-  }, [selectedContractor, fenceHeight, fenceType]);
-
-  useEffect(() => {
-    let isCancelled = false;
-
-    async function loadPricing() {
-      if (!selectedContractor) {
-        setSelectedPricing(null);
-        setPricingError("");
-        setIsPricingLoading(false);
-        return;
-      }
-
-      setIsPricingLoading(true);
-      setSelectedPricing(null);
-      setPricingError("");
-
-      try {
-        const pricing = await getContractorPricing(
-          selectedContractor.id,
-          fenceType,
-          fenceHeight
-        );
-
-        if (isCancelled) {
-          return;
-        }
-
-        setSelectedPricing(pricing);
-      } catch (loadError) {
-        if (isCancelled) {
-          return;
-        }
-
-        setSelectedPricing(null);
-        setPricingError(
-          loadError instanceof Error
-            ? loadError.message
-            : "Unable to load contractor pricing."
-        );
-      } finally {
-        if (!isCancelled) {
-          setIsPricingLoading(false);
-        }
-      }
+    if (matchingTypeOption) {
+      setFenceHeight(matchingTypeOption.fence_height);
+      return;
     }
 
-    loadPricing();
-
-    return () => {
-      isCancelled = true;
-    };
-  }, [selectedContractor, fenceType, fenceHeight]);
+    setFenceType(availablePricingOptions[0].fence_type);
+    setFenceHeight(availablePricingOptions[0].fence_height);
+  }, [availablePricingOptions, fenceHeight, fenceType]);
 
   const estimate = useMemo(() => {
-    if (!selectedPricing) {
-      return null;
-    }
+    if (!selectedPricing || !linearFeet || linearFeet <= 0) {
+      if (isContractorConfigLoading) {
+        return null;
+      }
 
-    if (!linearFeet || linearFeet <= 0) {
-      return null;
+      if (!linearFeet || linearFeet <= 0) {
+        return null;
+      }
+
+      return createUnavailableEstimate();
     }
 
     return calculateQuoteFromPricing(selectedPricing, {
@@ -248,7 +120,19 @@ export default function QuotePage() {
       yardGrade,
       tearOut,
     });
-  }, [gates, linearFeet, selectedPricing, tearOut, yardGrade]);
+  }, [
+    gates,
+    isContractorConfigLoading,
+    linearFeet,
+    selectedPricing,
+    tearOut,
+    yardGrade,
+  ]);
+
+  const pricingError = selectedContractor ? contractorConfigError : "";
+  const contractorError = !selectedContractor ? contractorConfigError : "";
+  const isContractorLoading = isContractorConfigLoading;
+  const isPricingLoading = isContractorConfigLoading;
 
   const availableFenceTypes = useMemo(() => {
     return new Set(availablePricingOptions.map((option) => option.fence_type));
@@ -366,6 +250,11 @@ export default function QuotePage() {
       return;
     }
 
+    if (estimate.unavailable) {
+      setError("Estimate unavailable for this selection.");
+      return;
+    }
+
     const nextErrors = validateFields();
     setFieldErrors(nextErrors);
 
@@ -377,50 +266,34 @@ export default function QuotePage() {
     setIsSubmitting(true);
 
     try {
-      const name = customerName;
-      const email = customerEmail;
-      const phone = customerPhone;
-      const estimateTotal = estimate.lowEstimate;
-
-      const payload = {
-        customer_name: name,
-        customer_email: email,
-        customer_phone: phone,
-        address: fullAddress,
-        street_address: streetAddress,
+      const payload = buildQuotePayload({
+        customerName,
+        customerEmail,
+        customerPhone,
+        fullAddress,
+        streetAddress,
         city,
         state,
         zip,
-        fence_type: fenceType,
-        fence_height: fenceHeight,
-        yard_grade: yardGrade,
-        linear_feet: linearFeet,
+        fenceType,
+        fenceHeight,
+        yardGrade,
+        linearFeet,
         gates,
-        tear_out: tearOut ?? false,
-        contractor_id: selectedContractor.id,
-        contractor_name: selectedContractor.name,
-        estimate_low: estimate.lowEstimate,
-        estimate_high: estimate.highEstimate,
-        estimate_subtotal: estimate.subtotal,
-        estimate_total: estimateTotal,
-        status: "new",
-        // optional compatibility fields if you want to keep them too
-        name,
-        email,
-        phone,
-      };
+        tearOut,
+        contractor: selectedContractor,
+        estimate,
+      });
 
-      const { data, error: insertError } = await supabase
+      if (process.env.NODE_ENV !== "production") {
+        console.log("QUOTE SUBMIT:", payload);
+        console.log("ESTIMATE:", estimate);
+      }
+
+      const { error: insertError } = await supabase
         .from("quote_submissions")
         .insert(payload)
         .select();
-
-      console.log("Submitting payload:", payload);
-      console.log("Supabase insert data:", data);
-      console.log(
-        "Supabase insert error full:",
-        JSON.stringify(insertError, null, 2)
-      );
 
       if (insertError) {
         setError(
@@ -755,10 +628,16 @@ export default function QuotePage() {
                     onChange={(e) => setFenceType(e.target.value as FenceType)}
                     className={selectClass()}
                   >
-                    <option value="cedar" className="bg-slate-900" disabled={!availableFenceTypes.has("cedar")}>Cedar Privacy</option>
-                    <option value="vinyl" className="bg-slate-900" disabled={!availableFenceTypes.has("vinyl")}>Vinyl Privacy</option>
-                    <option value="chain-link" className="bg-slate-900" disabled={!availableFenceTypes.has("chain-link")}>Chain Link</option>
-                    <option value="aluminum" className="bg-slate-900" disabled={!availableFenceTypes.has("aluminum")}>Aluminum</option>
+                    {FENCE_TYPES.map((type) => (
+                      <option
+                        key={type}
+                        value={type}
+                        className="bg-slate-900"
+                        disabled={!availableFenceTypes.has(type)}
+                      >
+                        {formatFenceType(type)}
+                      </option>
+                    ))}
                   </select>
                 </div>
 
@@ -769,9 +648,16 @@ export default function QuotePage() {
                     onChange={(e) => setFenceHeight(e.target.value as FenceHeight)}
                     className={selectClass()}
                   >
-                    <option value="4" className="bg-slate-900" disabled={!availableHeightsForFenceType.has("4")}>4 ft</option>
-                    <option value="6" className="bg-slate-900" disabled={!availableHeightsForFenceType.has("6")}>6 ft</option>
-                    <option value="8" className="bg-slate-900" disabled={!availableHeightsForFenceType.has("8")}>8 ft</option>
+                    {FENCE_HEIGHTS.map((height) => (
+                      <option
+                        key={height}
+                        value={height}
+                        className="bg-slate-900"
+                        disabled={!availableHeightsForFenceType.has(height)}
+                      >
+                        {height} ft
+                      </option>
+                    ))}
                   </select>
                 </div>
 
@@ -782,9 +668,11 @@ export default function QuotePage() {
                     onChange={(e) => setYardGrade(e.target.value as YardGrade)}
                     className={selectClass()}
                   >
-                    <option value="flat" className="bg-slate-900">Flat</option>
-                    <option value="moderate" className="bg-slate-900">Moderate Slope</option>
-                    <option value="steep" className="bg-slate-900">Steep Slope</option>
+                    {YARD_GRADES.map((grade) => (
+                      <option key={grade} value={grade} className="bg-slate-900">
+                        {grade === "moderate" ? "Moderate Slope" : formatYardGrade(grade)}
+                      </option>
+                    ))}
                   </select>
                 </div>
 
@@ -845,7 +733,7 @@ export default function QuotePage() {
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
                   <button
                     type="submit"
-                    disabled={isSubmitting || isPricingLoading || !estimate}
+                    disabled={isSubmitting || isPricingLoading || !estimate || estimate.unavailable}
                     className="inline-flex items-center justify-center rounded-2xl bg-white px-6 py-3.5 text-sm font-semibold text-slate-950 transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
                   >
                     {isSubmitting
