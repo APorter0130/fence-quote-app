@@ -11,14 +11,16 @@ export type PricingConfig = {
 
 export type Contractor = {
   id: string;
+  slug: string;
   name: string;
   pricing: PricingConfig;
 };
 
 export const contractors: Contractor[] = [
   {
-    id: "contractor-1",
-    name: "St. Louis Fence Co",
+    id: "edeef6d0-30ae-4eef-bc72-584a1df54620",
+    slug: "aj-fence",
+    name: "AJ Fence Company",
     pricing: {
       materialPrices: {
         cedar: 45,
@@ -42,7 +44,8 @@ export const contractors: Contractor[] = [
     },
   },
   {
-    id: "contractor-2",
+    id: "2d1f5d1a-8b33-4b5d-9f7f-1e6058b4f2d1",
+    slug: "premium-fence-outdoor",
     name: "Premium Fence & Outdoor",
     pricing: {
       materialPrices: {
@@ -67,3 +70,20 @@ export const contractors: Contractor[] = [
     },
   },
 ];
+
+function normalizeContractorIdentifier(value: string) {
+  return value.trim().toLowerCase();
+}
+
+export function findContractorByIdentifier(identifier: string) {
+  const normalizedIdentifier = normalizeContractorIdentifier(identifier);
+
+  return (
+    contractors.find((contractor) => {
+      return (
+        normalizeContractorIdentifier(contractor.id) === normalizedIdentifier ||
+        normalizeContractorIdentifier(contractor.slug) === normalizedIdentifier
+      );
+    }) ?? null
+  );
+}

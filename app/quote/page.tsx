@@ -1,14 +1,21 @@
 "use client";
 
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import FenceDrawMap from "../../components/fence-draw-map";
-import { calculateQuoteEstimate } from "../../lib/pricing";
-import { contractors } from "../../data/contractors";
+import {
+  calculateQuoteFromPricing,
+  getContractorPricing,
+  getContractorPricingOptions,
+  type ContractorPricingOption,
+  type ContractorPricingRow,
+} from "../../lib/pricing";
+import { contractors, type Contractor } from "../../data/contractors";
+import { resolveContractor } from "../../lib/contractors";
 import { supabase } from "../../lib/supabase";
 import type {
   FenceHeight,
   FenceType,
-  QuoteInputs,
   YardGrade,
 } from "../../types/quote";
 
@@ -24,7 +31,18 @@ type FieldKey =
   | "gates";
 
 export default function QuotePage() {
-  const selectedContractor = contractors[0];
+  const searchParams = useSearchParams();
+  const contractorParam = searchParams.get("contractor")?.trim() ?? "";
+
+  const [selectedContractor, setSelectedContractor] = useState<Contractor | null>(
+    contractors[0]
+  );
+  const [isContractorLoading, setIsContractorLoading] = useState(false);
+  const [contractorError, setContractorError] = useState("");
+  const [selectedPricing, setSelectedPricing] = useState<ContractorPricingRow | null>(null);
+  const [availablePricingOptions, setAvailablePricingOptions] = useState<ContractorPricingOption[]>([]);
+  const [isPricingLoading, setIsPricingLoading] = useState(false);
+  const [pricingError, setPricingError] = useState("");
 
   const [customerName, setCustomerName] = useState("");
   const [customerEmail, setCustomerEmail] = useState("");
@@ -57,27 +75,192 @@ export default function QuotePage() {
     state.trim().length === 2 &&
     zip.trim().length === 5;
 
-  const quoteInputs: QuoteInputs = {
-    name: customerName,
-    email: customerEmail,
-    phone: customerPhone,
-    address: fullAddress,
-    streetAddress,
-    city,
-    state,
-    zip,
-    fenceType,
-    fenceHeight,
-    yardGrade,
-    linearFeet,
-    gates,
-    tearOut,
-    customerName,
-  };
+  useEffect(() => {
+    let isCancelled = false;
+
+    async function loadContractor() {
+      if (!contractorParam) {
+        setSelectedContractor(contractors[0]);
+        setContractorError("");
+        setIsContractorLoading(false);
+        return;
+      }
+
+      setIsContractorLoading(true);
+      setContractorError("");
+
+      try {
+        const contractor = await resolveContractor(contractorParam);
+
+        if (isCancelled) {
+          return;
+        }
+
+        if (!contractor) {
+          setSelectedContractor(null);
+          setContractorError("Invalid contractor configuration. Please use a valid quote link.");
+          return;
+        }
+
+        setSelectedContractor(contractor);
+      } catch {
+        if (isCancelled) {
+          return;
+        }
+
+        setSelectedContractor(null);
+        setContractorError("Unable to load contractor configuration right now. Please try again.");
+      } finally {
+        if (!isCancelled) {
+          setIsContractorLoading(false);
+        }
+      }
+    }
+
+    loadContractor();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [contractorParam]);
+
+  useEffect(() => {
+    let isCancelled = false;
+
+    async function loadPricingOptions() {
+      if (!selectedContractor) {
+        setAvailablePricingOptions([]);
+        return;
+      }
+
+      try {
+        const pricingOptions = await getContractorPricingOptions(selectedContractor.id);
+
+        if (isCancelled) {
+          return;
+        }
+
+        setAvailablePricingOptions(pricingOptions);
+
+        if (pricingOptions.length === 0) {
+          return;
+        }
+
+        const hasCurrentSelection = pricingOptions.some(
+          (option) => option.fence_type === fenceType && option.fence_height === fenceHeight
+        );
+
+        if (hasCurrentSelection) {
+          return;
+        }
+
+        const matchingTypeOption = pricingOptions.find(
+          (option) => option.fence_type === fenceType
+        );
+
+        if (matchingTypeOption) {
+          setFenceHeight(matchingTypeOption.fence_height);
+          return;
+        }
+
+        setFenceType(pricingOptions[0].fence_type);
+        setFenceHeight(pricingOptions[0].fence_height);
+      } catch {
+        if (isCancelled) {
+          return;
+        }
+
+        setAvailablePricingOptions([]);
+      }
+    }
+
+    loadPricingOptions();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [selectedContractor, fenceHeight, fenceType]);
+
+  useEffect(() => {
+    let isCancelled = false;
+
+    async function loadPricing() {
+      if (!selectedContractor) {
+        setSelectedPricing(null);
+        setPricingError("");
+        setIsPricingLoading(false);
+        return;
+      }
+
+      setIsPricingLoading(true);
+      setSelectedPricing(null);
+      setPricingError("");
+
+      try {
+        const pricing = await getContractorPricing(
+          selectedContractor.id,
+          fenceType,
+          fenceHeight
+        );
+
+        if (isCancelled) {
+          return;
+        }
+
+        setSelectedPricing(pricing);
+      } catch (loadError) {
+        if (isCancelled) {
+          return;
+        }
+
+        setSelectedPricing(null);
+        setPricingError(
+          loadError instanceof Error
+            ? loadError.message
+            : "Unable to load contractor pricing."
+        );
+      } finally {
+        if (!isCancelled) {
+          setIsPricingLoading(false);
+        }
+      }
+    }
+
+    loadPricing();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [selectedContractor, fenceType, fenceHeight]);
 
   const estimate = useMemo(() => {
-    return calculateQuoteEstimate(quoteInputs, selectedContractor.pricing);
-  }, [quoteInputs, selectedContractor]);
+    if (!selectedPricing) {
+      return null;
+    }
+
+    if (!linearFeet || linearFeet <= 0) {
+      return null;
+    }
+
+    return calculateQuoteFromPricing(selectedPricing, {
+      linearFeet,
+      gates,
+      yardGrade,
+      tearOut,
+    });
+  }, [gates, linearFeet, selectedPricing, tearOut, yardGrade]);
+
+  const availableFenceTypes = useMemo(() => {
+    return new Set(availablePricingOptions.map((option) => option.fence_type));
+  }, [availablePricingOptions]);
+
+  const availableHeightsForFenceType = useMemo(() => {
+    return new Set(
+      availablePricingOptions
+        .filter((option) => option.fence_type === fenceType)
+        .map((option) => option.fence_height)
+    );
+  }, [availablePricingOptions, fenceType]);
 
   function validateFields() {
     const nextErrors: Partial<Record<FieldKey, string>> = {};
@@ -148,9 +331,40 @@ export default function QuotePage() {
     return "w-full rounded-2xl border border-white/10 bg-white/[0.05] px-4 py-3.5 text-[15px] text-white outline-none transition duration-200 focus:border-amber-400/70 focus:ring-4 focus:ring-amber-400/10";
   }
 
+  function formatFenceType(value: FenceType) {
+    if (value === "chain-link") {
+      return "Chain Link";
+    }
+
+    return value.charAt(0).toUpperCase() + value.slice(1);
+  }
+
+  function formatYardGrade(value: YardGrade) {
+    return value.charAt(0).toUpperCase() + value.slice(1);
+  }
+
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError("");
+
+    if (isContractorLoading) {
+      setError("Contractor settings are still loading. Please wait a moment and try again.");
+      return;
+    }
+
+    if (isPricingLoading) {
+      setError("Pricing is still loading. Please wait a moment and try again.");
+      return;
+    }
+
+    if (!selectedContractor || !estimate) {
+      setError(
+        contractorError ||
+        pricingError ||
+        "Invalid contractor configuration. Please use a valid quote link."
+      );
+      return;
+    }
 
     const nextErrors = validateFields();
     setFieldErrors(nextErrors);
@@ -162,10 +376,11 @@ export default function QuotePage() {
 
     setIsSubmitting(true);
 
-    const name = customerName;
-    const email = customerEmail;
-    const phone = customerPhone;
-    const estimateTotal = estimate.subtotal;
+    try {
+      const name = customerName;
+      const email = customerEmail;
+      const phone = customerPhone;
+      const estimateTotal = estimate.lowEstimate;
 
       const payload = {
         customer_name: name,
@@ -184,8 +399,8 @@ export default function QuotePage() {
         tear_out: tearOut ?? false,
         contractor_id: selectedContractor.id,
         contractor_name: selectedContractor.name,
-        estimate_low: estimate.low,
-        estimate_high: estimate.high,
+        estimate_low: estimate.lowEstimate,
+        estimate_high: estimate.highEstimate,
         estimate_subtotal: estimate.subtotal,
         estimate_total: estimateTotal,
         status: "new",
@@ -196,21 +411,92 @@ export default function QuotePage() {
       };
 
       const { data, error: insertError } = await supabase
-      .from("quote_submissions")
+        .from("quote_submissions")
         .insert(payload)
         .select();
 
-    if (insertError) {
-      setError(insertError?.message || "Something went wrong saving your quote.");
-      setIsSubmitting(false);
-      return;
-    }
+      console.log("Submitting payload:", payload);
+      console.log("Supabase insert data:", data);
+      console.log(
+        "Supabase insert error full:",
+        JSON.stringify(insertError, null, 2)
+      );
 
-    setIsSubmitting(false);
-    setSubmitted(true);
+      if (insertError) {
+        setError(
+          insertError.message ||
+          insertError.details ||
+          insertError.hint ||
+          "Something went wrong saving your quote."
+        );
+        return;
+      }
+
+      setSubmitted(true);
+    } catch (submitError) {
+      setError(
+        submitError instanceof Error
+          ? submitError.message
+          : "Something went wrong saving your quote."
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
-  if (submitted) {
+  if (isContractorLoading) {
+    return (
+      <main className="min-h-screen px-4 py-10 text-white">
+        <div className="mx-auto max-w-3xl fade-in-up">
+          <section className="glass-panel overflow-hidden rounded-[32px] shadow-[0_20px_80px_rgba(0,0,0,0.35)]">
+            <div className="border-b border-white/10 bg-gradient-to-r from-amber-300/15 via-transparent to-transparent px-6 py-6 md:px-10">
+              <div className="inline-flex rounded-full border border-amber-300/40 bg-amber-300/15 px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-amber-200">
+                Loading
+              </div>
+              <h1 className="mt-4 text-3xl font-semibold tracking-tight md:text-4xl">
+                Loading contractor configuration
+              </h1>
+              <p className="mt-3 max-w-2xl text-sm leading-7 text-slate-300 md:text-base">
+                This quote form is resolving the contractor tied to your embed link.
+              </p>
+            </div>
+          </section>
+        </div>
+      </main>
+    );
+  }
+
+  if (!selectedContractor) {
+    return (
+      <main className="min-h-screen px-4 py-10 text-white">
+        <div className="mx-auto max-w-3xl fade-in-up">
+          <section className="glass-panel overflow-hidden rounded-[32px] shadow-[0_20px_80px_rgba(0,0,0,0.35)]">
+            <div className="border-b border-white/10 bg-gradient-to-r from-rose-300/15 via-transparent to-transparent px-6 py-6 md:px-10">
+              <div className="inline-flex rounded-full border border-rose-300/40 bg-rose-300/15 px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-rose-200">
+                Invalid Quote Link
+              </div>
+              <h1 className="mt-4 text-3xl font-semibold tracking-tight md:text-4xl">
+                This contractor link could not be resolved
+              </h1>
+              <p className="mt-3 max-w-2xl text-sm leading-7 text-slate-300 md:text-base">
+                Use a valid contractor identifier in the quote URL, for example
+                <span className="font-medium text-white"> ?contractor=aj-fence</span>
+                or the contractor UUID.
+              </p>
+            </div>
+
+            <div className="px-6 py-8 md:px-10 text-sm leading-7 text-slate-300">
+              <p>
+                {contractorError || "The form is intentionally blocked here so submissions are not attached to the wrong contractor."}
+              </p>
+            </div>
+          </section>
+        </div>
+      </main>
+    );
+  }
+
+  if (submitted && estimate) {
     return (
       <main className="min-h-screen px-4 py-10 text-white">
         <div className="mx-auto max-w-4xl fade-in-up">
@@ -226,48 +512,27 @@ export default function QuotePage() {
                 Thanks, {customerName}. Your request is in the contractor dashboard,
                 and your current projected range is below.
               </p>
+              <p className="mt-3 text-xs font-semibold uppercase tracking-[0.14em] text-amber-200/80">
+                Routed to {selectedContractor.name}
+              </p>
             </div>
 
             <div className="px-6 py-8 md:px-10">
               <div className="rounded-[26px] border border-amber-300/20 bg-gradient-to-br from-amber-300/12 via-white/[0.03] to-transparent p-6">
-                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-amber-200/85">
+                <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-amber-200/90">
                   Estimated Range
                 </p>
-                <p className="mt-3 text-3xl font-semibold tracking-tight md:text-5xl">
-                  ${estimate.low.toLocaleString()} - ${estimate.high.toLocaleString()}
+                <p className="mt-4">
+                  <span className="inline-flex rounded-2xl border border-amber-200/20 bg-amber-200/10 px-4 py-2 text-4xl font-extrabold tracking-tight leading-none text-white drop-shadow-[0_8px_24px_rgba(245,158,11,0.32)] md:text-6xl">
+                    ${estimate.lowEstimate.toLocaleString()} - ${estimate.highEstimate.toLocaleString()}
+                  </span>
                 </p>
                 <p className="mt-4 max-w-2xl text-sm leading-7 text-slate-300">
-                  Final pricing can change based on onsite verification, layout
-                  complexity, and final material selection.
+                  This estimate is based on your selections and measured fence footage.
                 </p>
-              </div>
-
-              <div className="mt-8 grid gap-5 md:grid-cols-2">
-                <div className="rounded-3xl border border-white/10 bg-white/[0.03] p-6">
-                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
-                    Contact
-                  </p>
-                  <div className="mt-4 space-y-2 text-sm text-slate-300">
-                    <p><span className="font-medium text-white">Name:</span> {customerName}</p>
-                    <p><span className="font-medium text-white">Email:</span> {customerEmail}</p>
-                    <p><span className="font-medium text-white">Phone:</span> {customerPhone}</p>
-                    <p><span className="font-medium text-white">Address:</span> {fullAddress}</p>
-                  </div>
-                </div>
-
-                <div className="rounded-3xl border border-white/10 bg-white/[0.03] p-6">
-                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
-                    Project
-                  </p>
-                  <div className="mt-4 space-y-2 text-sm text-slate-300">
-                    <p><span className="font-medium text-white">Type:</span> {fenceType}</p>
-                    <p><span className="font-medium text-white">Height:</span> {fenceHeight} ft</p>
-                    <p><span className="font-medium text-white">Grade:</span> {yardGrade}</p>
-                    <p><span className="font-medium text-white">Linear Feet:</span> {linearFeet}</p>
-                    <p><span className="font-medium text-white">Gates:</span> {gates}</p>
-                    <p><span className="font-medium text-white">Tear-out:</span> {tearOut ? "Included" : "No"}</p>
-                  </div>
-                </div>
+                <p className="mt-4 text-xs leading-5 text-slate-400">
+                  Final pricing may vary based on layout, site access, removal needs, and other field conditions.
+                </p>
               </div>
 
               <div className="mt-8 flex flex-wrap items-center gap-3">
@@ -278,7 +543,7 @@ export default function QuotePage() {
                   Edit Submission
                 </button>
                 <span className="text-sm text-slate-400">
-                  A contractor can now review your details and contact you.
+                  {selectedContractor.name} can now review your details and contact you.
                 </span>
               </div>
             </div>
@@ -303,6 +568,10 @@ export default function QuotePage() {
           <p className="mt-4 max-w-3xl text-base leading-8 text-slate-300">
             Share your project details and unlock a preliminary pricing range the moment
             you submit.
+          </p>
+
+          <p className="mt-4 text-sm font-medium text-amber-200/90">
+            Pricing for {selectedContractor.name}
           </p>
 
           <div className="mt-6 flex flex-wrap items-center gap-2.5 md:gap-3 text-xs text-slate-300">
@@ -486,10 +755,10 @@ export default function QuotePage() {
                     onChange={(e) => setFenceType(e.target.value as FenceType)}
                     className={selectClass()}
                   >
-                    <option value="cedar" className="bg-slate-900">Cedar Privacy</option>
-                    <option value="vinyl" className="bg-slate-900">Vinyl Privacy</option>
-                    <option value="chain-link" className="bg-slate-900">Chain Link</option>
-                    <option value="aluminum" className="bg-slate-900">Aluminum</option>
+                    <option value="cedar" className="bg-slate-900" disabled={!availableFenceTypes.has("cedar")}>Cedar Privacy</option>
+                    <option value="vinyl" className="bg-slate-900" disabled={!availableFenceTypes.has("vinyl")}>Vinyl Privacy</option>
+                    <option value="chain-link" className="bg-slate-900" disabled={!availableFenceTypes.has("chain-link")}>Chain Link</option>
+                    <option value="aluminum" className="bg-slate-900" disabled={!availableFenceTypes.has("aluminum")}>Aluminum</option>
                   </select>
                 </div>
 
@@ -500,9 +769,9 @@ export default function QuotePage() {
                     onChange={(e) => setFenceHeight(e.target.value as FenceHeight)}
                     className={selectClass()}
                   >
-                    <option value="4" className="bg-slate-900">4 ft</option>
-                    <option value="6" className="bg-slate-900">6 ft</option>
-                    <option value="8" className="bg-slate-900">8 ft</option>
+                    <option value="4" className="bg-slate-900" disabled={!availableHeightsForFenceType.has("4")}>4 ft</option>
+                    <option value="6" className="bg-slate-900" disabled={!availableHeightsForFenceType.has("6")}>6 ft</option>
+                    <option value="8" className="bg-slate-900" disabled={!availableHeightsForFenceType.has("8")}>8 ft</option>
                   </select>
                 </div>
 
@@ -566,14 +835,24 @@ export default function QuotePage() {
                 </div>
               ) : null}
 
+              {!error && pricingError ? (
+                <div className="mt-6 rounded-2xl border border-amber-300/25 bg-amber-300/10 px-4 py-3 text-sm text-amber-100">
+                  {pricingError}
+                </div>
+              ) : null}
+
               <div className="sticky bottom-3 mt-8 rounded-2xl border border-white/10 bg-slate-950/65 p-3 backdrop-blur md:static md:border-0 md:bg-transparent md:p-0">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
                   <button
                     type="submit"
-                    disabled={isSubmitting}
+                    disabled={isSubmitting || isPricingLoading || !estimate}
                     className="inline-flex items-center justify-center rounded-2xl bg-white px-6 py-3.5 text-sm font-semibold text-slate-950 transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
                   >
-                    {isSubmitting ? "Submitting..." : "Get My Estimate"}
+                    {isSubmitting
+                      ? "Submitting..."
+                      : isPricingLoading
+                        ? "Loading Pricing..."
+                        : "Get My Estimate"}
                   </button>
 
                   <p className="text-sm text-slate-300">
@@ -589,14 +868,15 @@ export default function QuotePage() {
                   Current Inputs
                 </p>
                 <div className="mt-4 space-y-2 text-sm text-slate-300">
-                  <p>Type: <span className="font-medium text-white capitalize">{fenceType}</span></p>
+                  <p>Type: <span className="font-medium text-white">{formatFenceType(fenceType)}</span></p>
                   <p>Height: <span className="font-medium text-white">{fenceHeight} ft</span></p>
-                  <p>Yard Grade: <span className="font-medium text-white capitalize">{yardGrade}</span></p>
+                  <p>Yard Grade: <span className="font-medium text-white">{formatYardGrade(yardGrade)}</span></p>
                   <p>Linear Feet: <span className="font-medium text-white">{linearFeet}</span></p>
                   <p>Gates: <span className="font-medium text-white">{gates}</span></p>
-                  <p>Tear-out: <span className="font-medium text-white">{tearOut ? "Included" : "No"}</span></p>
+                  <p>Tear-out: <span className="font-medium text-white">{tearOut ? "Yes" : "No"}</span></p>
                 </div>
               </div>
+
 
               <div className="rounded-3xl border border-white/10 bg-white/[0.03] p-6">
                 <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
@@ -615,3 +895,26 @@ export default function QuotePage() {
     </main>
   );
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
