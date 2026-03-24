@@ -605,7 +605,7 @@ export default function QuotePage() {
         </header>
 
         <section className="glass-panel rounded-[32px] p-6 shadow-[0_20px_80px_rgba(0,0,0,0.35)] md:p-8">
-          <div className="grid gap-8 lg:grid-cols-[1.2fr_0.8fr]">
+          <div className="mx-auto max-w-2xl">
             <form onSubmit={handleSubmit}>
               <div>
                 <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
@@ -932,54 +932,41 @@ export default function QuotePage() {
                 </div>
               ) : null}
 
-              <div className="sticky bottom-3 mt-8 rounded-2xl border border-white/10 bg-slate-950/65 p-3 backdrop-blur md:static md:border-0 md:bg-transparent md:p-0">
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-                  <button
-                    type="submit"
-                    disabled={isSubmitting || isPricingLoading || !estimate || estimate.unavailable}
-                    className="inline-flex items-center justify-center rounded-2xl bg-white px-6 py-3.5 text-sm font-semibold text-slate-950 transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
-                  >
-                    {isSubmitting
-                      ? "Submitting..."
-                      : isPricingLoading
-                        ? "Loading Pricing..."
-                        : "Get My Estimate"}
-                  </button>
-
-                  <p className="text-sm text-slate-300">
-                    Your range appears immediately after successful submission.
-                  </p>
-                </div>
-              </div>
-            </form>
-
-            <aside className="space-y-5">
-              <div className="rounded-3xl border border-white/10 bg-white/[0.03] p-6">
-                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
-                  Current Inputs
-                </p>
-                <div className="mt-4 space-y-2 text-sm text-slate-300">
-                  <p>Type: <span className="font-medium text-white">{formatFenceType(fenceType)}</span></p>
-                  <p>Height: <span className="font-medium text-white">{fenceHeight} ft</span></p>
-                  <p>Yard Grade: <span className="font-medium text-white">{formatYardGrade(yardGrade)}</span></p>
-                  <p>Linear Feet: <span className="font-medium text-white">{linearFeet}</span></p>
-                  <p>Gates: <span className="font-medium text-white">{gates}</span></p>
-                  <p>Tear-out: <span className="font-medium text-white">{tearOut ? "Yes" : "No"}</span></p>
-                </div>
-              </div>
-
-
-              <div className="rounded-3xl border border-white/10 bg-white/[0.03] p-6">
-                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
-                  What Happens Next
-                </p>
-                <ol className="mt-3 list-decimal space-y-2 pl-5 text-sm leading-6 text-slate-300">
-                  <li>Your request is saved to the contractor dashboard.</li>
-                  <li>A contractor reviews scope and site details.</li>
-                  <li>You receive final follow-up for verified pricing.</li>
+              <div className="mt-8 rounded-2xl border border-white/10 bg-white/[0.03] p-5">
+                <p className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500">What Happens Next</p>
+                <ol className="mt-3 space-y-2">
+                  {[
+                    "Your request is saved to the contractor dashboard.",
+                    "A contractor reviews scope and site details.",
+                    "You receive final follow-up with verified pricing.",
+                  ].map((step, i) => (
+                    <li key={i} className="flex gap-3 text-sm text-slate-400">
+                      <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-amber-400/30 bg-amber-400/10 text-[10px] font-bold text-amber-400">
+                        {i + 1}
+                      </span>
+                      {step}
+                    </li>
+                  ))}
                 </ol>
               </div>
-            </aside>
+
+              <div className="mt-5">
+                <button
+                  type="submit"
+                  disabled={isSubmitting || isPricingLoading || !estimate || estimate.unavailable}
+                  className="w-full rounded-2xl bg-white py-4 text-sm font-semibold text-slate-950 transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {isSubmitting
+                    ? "Submitting..."
+                    : isPricingLoading
+                      ? "Loading Pricing..."
+                      : "Get My Estimate"}
+                </button>
+                <p className="mt-3 text-center text-xs text-slate-500">
+                  No obligation — your range unlocks the moment you submit.
+                </p>
+              </div>
+            </form>
           </div>
         </section>
       </div>
