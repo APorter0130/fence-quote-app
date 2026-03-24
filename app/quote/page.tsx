@@ -723,14 +723,14 @@ export default function QuotePage() {
                     {fieldErrors.zip ? <p className="mt-2 text-xs text-rose-300">{fieldErrors.zip}</p> : null}
                   </div>
 
-                  <div className="flex items-end">
+                  <div className="flex items-end pb-0.5">
                     <button
                       type="button"
                       disabled={!canSearch}
                       onClick={() => setSearchTrigger((prev) => prev + 1)}
-                      className="w-full rounded-2xl border border-white/10 bg-white/[0.05] px-4 py-3 text-sm font-medium text-white transition hover:bg-white/[0.08] disabled:cursor-not-allowed disabled:opacity-50"
+                      className="text-xs text-slate-500 underline underline-offset-4 transition hover:text-white disabled:cursor-not-allowed disabled:opacity-30"
                     >
-                      Find Address
+                      Re-search address
                     </button>
                   </div>
                 </div>
