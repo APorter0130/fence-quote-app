@@ -32,6 +32,61 @@ type FieldKey =
   | "linearFeet"
   | "gates";
 
+const FENCE_TYPE_META: Record<FenceType, { label: string; desc: string }> = {
+  cedar: { label: "Cedar", desc: "Natural wood" },
+  vinyl: { label: "Vinyl", desc: "Low maintenance" },
+  "chain-link": { label: "Chain Link", desc: "Open & durable" },
+  aluminum: { label: "Aluminum", desc: "Premium metal" },
+};
+
+function CedarIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 3L7.5 10h3V14L5.5 18v2h13v-2L14 14V10h3L12 3z" />
+    </svg>
+  );
+}
+
+function VinylIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+      <rect x="2" y="4" width="20" height="4" rx="1" />
+      <rect x="2" y="10" width="20" height="4" rx="1" />
+      <rect x="2" y="16" width="20" height="4" rx="1" />
+    </svg>
+  );
+}
+
+function ChainLinkIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+      <path d="M4 4L8 12L12 4L16 12L20 4" />
+      <path d="M4 12L8 20L12 12L16 20L20 12" />
+    </svg>
+  );
+}
+
+function AluminumIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+      <line x1="3" y1="6" x2="21" y2="6" />
+      <line x1="3" y1="10" x2="21" y2="10" />
+      <line x1="3" y1="14" x2="21" y2="14" />
+      <line x1="3" y1="18" x2="21" y2="18" />
+      <line x1="7" y1="3" x2="7" y2="21" />
+      <line x1="12" y1="3" x2="12" y2="21" />
+      <line x1="17" y1="3" x2="17" y2="21" />
+    </svg>
+  );
+}
+
+const FENCE_ICONS: Record<FenceType, React.ComponentType<{ className?: string }>> = {
+  cedar: CedarIcon,
+  vinyl: VinylIcon,
+  "chain-link": ChainLinkIcon,
+  aluminum: AluminumIcon,
+};
+
 export default function QuotePage() {
   const searchParams = useSearchParams();
   const contractorParam = searchParams.get("contractor")?.trim() ?? "";
@@ -621,24 +676,35 @@ export default function QuotePage() {
                   </div>
                 )}
 
-                <div>
-                  <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-slate-300">Fence Type</label>
-                  <select
-                    value={fenceType}
-                    onChange={(e) => setFenceType(e.target.value as FenceType)}
-                    className={selectClass()}
-                  >
-                    {FENCE_TYPES.map((type) => (
-                      <option
-                        key={type}
-                        value={type}
-                        className="bg-slate-900"
-                        disabled={!availableFenceTypes.has(type)}
-                      >
-                        {formatFenceType(type)}
-                      </option>
-                    ))}
-                  </select>
+                <div className="md:col-span-2">
+                  <label className="mb-3 block text-xs font-semibold uppercase tracking-[0.16em] text-slate-300">Fence Type</label>
+                  <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                    {FENCE_TYPES.map((type) => {
+                      const Icon = FENCE_ICONS[type];
+                      const isSelected = fenceType === type;
+                      const isAvailable = availableFenceTypes.has(type);
+                      return (
+                        <button
+                          key={type}
+                          type="button"
+                          disabled={!isAvailable}
+                          onClick={() => setFenceType(type as FenceType)}
+                          className={[
+                            "flex flex-col items-center gap-2 rounded-2xl border px-3 py-4 text-center transition-all duration-200",
+                            isSelected
+                              ? "border-amber-400/60 bg-amber-400/10 shadow-[0_0_18px_rgba(251,191,36,0.12)] text-white"
+                              : isAvailable
+                                ? "border-white/10 bg-white/[0.04] text-slate-400 hover:border-white/20 hover:bg-white/[0.07] hover:text-white"
+                                : "cursor-not-allowed border-white/5 bg-white/[0.02] text-slate-600 opacity-40",
+                          ].join(" ")}
+                        >
+                          <Icon className={`h-7 w-7 ${isSelected ? "text-amber-400" : ""}`} />
+                          <span className="text-sm font-semibold">{FENCE_TYPE_META[type].label}</span>
+                          <span className="text-[11px] opacity-60">{FENCE_TYPE_META[type].desc}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
 
                 <div>
