@@ -735,19 +735,33 @@ export default function QuotePage() {
                   </div>
                 </div>
 
-                <div>
-                  <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-slate-300">Yard Grade</label>
-                  <select
-                    value={yardGrade}
-                    onChange={(e) => setYardGrade(e.target.value as YardGrade)}
-                    className={selectClass()}
-                  >
-                    {YARD_GRADES.map((grade) => (
-                      <option key={grade} value={grade} className="bg-slate-900">
-                        {grade === "moderate" ? "Moderate Slope" : formatYardGrade(grade)}
-                      </option>
-                    ))}
-                  </select>
+                <div className="md:col-span-2">
+                  <label className="mb-3 block text-xs font-semibold uppercase tracking-[0.16em] text-slate-300">Yard Grade</label>
+                  <div className="grid grid-cols-3 gap-3">
+                    {(YARD_GRADES as readonly YardGrade[]).map((grade) => {
+                      const isSelected = yardGrade === grade;
+                      const symbol = grade === "flat" ? "━━" : grade === "moderate" ? "╱━" : "╱╱";
+                      const desc = grade === "flat" ? "Level terrain" : grade === "moderate" ? "Gentle slope" : "Steep grade";
+                      const label = grade === "moderate" ? "Moderate" : formatYardGrade(grade);
+                      return (
+                        <button
+                          key={grade}
+                          type="button"
+                          onClick={() => setYardGrade(grade)}
+                          className={[
+                            "flex flex-col items-center gap-1.5 rounded-2xl border px-3 py-4 text-center transition-all duration-200",
+                            isSelected
+                              ? "border-amber-400/60 bg-amber-400/10 shadow-[0_0_18px_rgba(251,191,36,0.12)] text-white"
+                              : "border-white/10 bg-white/[0.04] text-slate-400 hover:border-white/20 hover:bg-white/[0.07] hover:text-white",
+                          ].join(" ")}
+                        >
+                          <span className={`font-mono text-base tracking-widest ${isSelected ? "text-amber-400" : ""}`}>{symbol}</span>
+                          <span className="text-sm font-semibold">{label}</span>
+                          <span className="text-[11px] opacity-60">{desc}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
 
                 <div>
