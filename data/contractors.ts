@@ -13,6 +13,7 @@ export type Contractor = {
   id: string;
   slug: string;
   name: string;
+  accentColor: string;
   pricing: PricingConfig;
 };
 
@@ -21,6 +22,7 @@ export const contractors: Contractor[] = [
     id: "edeef6d0-30ae-4eef-bc72-584a1df54620",
     slug: "aj-fence",
     name: "AJ Fence Company",
+    accentColor: "#f97316",
     pricing: {
       materialPrices: {
         cedar: 45,
@@ -47,6 +49,7 @@ export const contractors: Contractor[] = [
     id: "2d1f5d1a-8b33-4b5d-9f7f-1e6058b4f2d1",
     slug: "premium-fence-outdoor",
     name: "Premium Fence & Outdoor",
+    accentColor: "#6366f1",
     pricing: {
       materialPrices: {
         cedar: 52,

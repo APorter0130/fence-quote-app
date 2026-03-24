@@ -11,16 +11,20 @@ type ContractorRow = {
 const UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
-function getFallbackPricing(identifier: string) {
-  return findContractorByIdentifier(identifier)?.pricing ?? contractors[0].pricing;
+const DEFAULT_ACCENT_COLOR = "#f97316";
+
+function getFallbackContractor(identifier: string) {
+  return findContractorByIdentifier(identifier) ?? contractors[0];
 }
 
 function mapRowToContractor(row: ContractorRow, identifier: string): Contractor {
+  const fallback = getFallbackContractor(identifier);
   return {
     id: row.id,
     slug: row.slug ?? row.id,
     name: row.company_name,
-    pricing: getFallbackPricing(identifier),
+    accentColor: fallback.accentColor ?? DEFAULT_ACCENT_COLOR,
+    pricing: fallback.pricing,
   };
 }
 
