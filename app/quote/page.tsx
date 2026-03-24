@@ -426,56 +426,145 @@ export default function QuotePage() {
 
   if (submitted && estimate) {
     return (
-      <main className="min-h-screen px-4 py-10 text-white">
-        <div className="mx-auto max-w-4xl fade-in-up">
-          <section className="glass-panel overflow-hidden rounded-[32px] shadow-[0_20px_80px_rgba(0,0,0,0.35)]">
-            <div className="border-b border-white/10 bg-gradient-to-r from-emerald-300/15 via-transparent to-transparent px-6 py-6 md:px-10">
-              <div className="inline-flex rounded-full border border-emerald-300/40 bg-emerald-300/15 px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-emerald-200">
-                Estimate Ready
+      <main className="min-h-screen px-4 py-12 text-white">
+        <div className="mx-auto max-w-3xl fade-in-up">
+
+          {/* Header */}
+          <div className="mb-8 text-center">
+            <div className="inline-flex items-center gap-2 rounded-full border border-emerald-400/40 bg-emerald-400/10 px-4 py-1.5 text-xs font-bold uppercase tracking-[0.18em] text-emerald-300">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+              Estimate Ready
+            </div>
+            <h1 className="mt-5 text-4xl font-semibold tracking-tight md:text-5xl">
+              Your range is unlocked
+            </h1>
+            <p className="mt-3 text-base text-slate-400">
+              Thanks, <span className="font-semibold text-white">{customerName}</span>. Routed to{" "}
+              <span className="font-semibold text-amber-300">{selectedContractor.name}</span>.
+            </p>
+          </div>
+
+          {/* Price reveal card */}
+          <div className="relative overflow-hidden rounded-3xl border border-amber-400/25 bg-gradient-to-br from-amber-400/10 via-amber-400/5 to-transparent p-8 shadow-[0_0_60px_rgba(251,191,36,0.08)]">
+            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_50%_0%,rgba(251,191,36,0.1),transparent_65%)]" />
+
+            <p className="relative text-center text-[11px] font-bold uppercase tracking-[0.22em] text-amber-400/70">
+              Estimated Range
+            </p>
+
+            <div className="relative mt-6 flex items-end justify-center gap-4 md:gap-8">
+              <div className="text-center">
+                <p className="text-4xl font-extrabold tracking-tight text-white drop-shadow-[0_4px_24px_rgba(251,191,36,0.25)] md:text-6xl">
+                  ${estimate.lowEstimate.toLocaleString()}
+                </p>
+                <p className="mt-1.5 text-[10px] font-bold uppercase tracking-widest text-slate-500">Low</p>
               </div>
-              <h1 className="mt-4 text-3xl font-semibold tracking-tight md:text-4xl">
-                Your preliminary range is unlocked
-              </h1>
-              <p className="mt-3 max-w-2xl text-sm leading-7 text-slate-300 md:text-base">
-                Thanks, {customerName}. Your request is in the contractor dashboard,
-                and your current projected range is below.
-              </p>
-              <p className="mt-3 text-xs font-semibold uppercase tracking-[0.14em] text-amber-200/80">
-                Routed to {selectedContractor.name}
-              </p>
+              <div className="mb-6 h-px w-10 bg-gradient-to-r from-amber-400/50 to-amber-400/50 md:w-16" />
+              <div className="text-center">
+                <p className="text-4xl font-extrabold tracking-tight text-white drop-shadow-[0_4px_24px_rgba(251,191,36,0.25)] md:text-6xl">
+                  ${estimate.highEstimate.toLocaleString()}
+                </p>
+                <p className="mt-1.5 text-[10px] font-bold uppercase tracking-widest text-slate-500">High</p>
+              </div>
             </div>
 
-            <div className="px-6 py-8 md:px-10">
-              <div className="rounded-[26px] border border-amber-300/20 bg-gradient-to-br from-amber-300/12 via-white/[0.03] to-transparent p-6">
-                <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-amber-200/90">
-                  Estimated Range
-                </p>
-                <p className="mt-4">
-                  <span className="inline-flex rounded-2xl border border-amber-200/20 bg-amber-200/10 px-4 py-2 text-4xl font-extrabold tracking-tight leading-none text-white drop-shadow-[0_8px_24px_rgba(245,158,11,0.32)] md:text-6xl">
-                    ${estimate.lowEstimate.toLocaleString()} - ${estimate.highEstimate.toLocaleString()}
-                  </span>
-                </p>
-                <p className="mt-4 max-w-2xl text-sm leading-7 text-slate-300">
-                  This estimate is based on your selections and measured fence footage.
-                </p>
-                <p className="mt-4 text-xs leading-5 text-slate-400">
-                  Final pricing may vary based on layout, site access, removal needs, and other field conditions.
-                </p>
-              </div>
-
-              <div className="mt-8 flex flex-wrap items-center gap-3">
-                <button
-                  onClick={() => setSubmitted(false)}
-                  className="inline-flex items-center justify-center rounded-2xl bg-white px-5 py-3 text-sm font-semibold text-slate-950 transition hover:opacity-90"
-                >
-                  Edit Submission
-                </button>
-                <span className="text-sm text-slate-400">
-                  {selectedContractor.name} can now review your details and contact you.
-                </span>
+            {/* Breakdown */}
+            <div className="relative mt-8 space-y-2 border-t border-white/10 pt-6 text-sm">
+              {estimate.baseTotal > 0 && (
+                <div className="flex justify-between text-slate-400">
+                  <span>Base installation</span>
+                  <span className="text-slate-300">${estimate.baseTotal.toLocaleString()}</span>
+                </div>
+              )}
+              {estimate.gateTotal > 0 && (
+                <div className="flex justify-between text-slate-400">
+                  <span>Gates ({gates})</span>
+                  <span className="text-slate-300">${estimate.gateTotal.toLocaleString()}</span>
+                </div>
+              )}
+              {estimate.tearOutTotal > 0 && (
+                <div className="flex justify-between text-slate-400">
+                  <span>Tear-out &amp; removal</span>
+                  <span className="text-slate-300">${estimate.tearOutTotal.toLocaleString()}</span>
+                </div>
+              )}
+              <div className="flex justify-between border-t border-white/10 pt-2 font-semibold text-white">
+                <span>Subtotal</span>
+                <span>${estimate.subtotal.toLocaleString()}</span>
               </div>
             </div>
-          </section>
+
+            <p className="relative mt-5 text-center text-xs text-slate-500">
+              Final pricing may vary based on layout, site access, removal needs, and other field conditions.
+            </p>
+          </div>
+
+          {/* Summary + Next steps */}
+          <div className="mt-6 grid gap-4 sm:grid-cols-2">
+            <div className="rounded-3xl border border-white/10 bg-white/[0.03] p-6">
+              <p className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500">Project Summary</p>
+              <div className="mt-4 space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-slate-400">Fence type</span>
+                  <span className="font-medium text-white">{FENCE_TYPE_META[fenceType].label}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-400">Height</span>
+                  <span className="font-medium text-white">{fenceHeight} ft</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-400">Linear feet</span>
+                  <span className="font-medium text-white">{linearFeet} ft</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-400">Gates</span>
+                  <span className="font-medium text-white">{gates}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-400">Yard grade</span>
+                  <span className="font-medium text-white">{formatYardGrade(yardGrade)}</span>
+                </div>
+                {tearOut && (
+                  <div className="flex justify-between">
+                    <span className="text-slate-400">Tear-out</span>
+                    <span className="font-medium text-white">Included</span>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="rounded-3xl border border-white/10 bg-white/[0.03] p-6">
+              <p className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500">What Happens Next</p>
+              <ol className="mt-4 space-y-3">
+                {[
+                  "Your request is saved to the contractor dashboard.",
+                  "A contractor reviews scope and site details.",
+                  "You receive final follow-up for verified pricing.",
+                ].map((step, i) => (
+                  <li key={i} className="flex gap-3 text-sm text-slate-300">
+                    <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-amber-400/30 bg-amber-400/10 text-[10px] font-bold text-amber-400">
+                      {i + 1}
+                    </span>
+                    {step}
+                  </li>
+                ))}
+              </ol>
+            </div>
+          </div>
+
+          {/* Footer action */}
+          <div className="mt-6 flex flex-wrap items-center gap-4">
+            <button
+              onClick={() => setSubmitted(false)}
+              className="inline-flex items-center justify-center rounded-2xl border border-white/10 bg-white/[0.05] px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/[0.09]"
+            >
+              Edit Submission
+            </button>
+            <p className="text-sm text-slate-500">
+              {selectedContractor.name} can now review your details and reach out.
+            </p>
+          </div>
+
         </div>
       </main>
     );
