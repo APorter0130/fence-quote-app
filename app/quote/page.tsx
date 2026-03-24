@@ -735,27 +735,37 @@ export default function QuotePage() {
                   </div>
                 </div>
 
-                <div className="md:col-span-2">
-                  <button
-                    type="button"
-                    onClick={() => setShowMap((prev) => !prev)}
-                    className="inline-flex items-center justify-center rounded-2xl border border-white/10 bg-white/[0.05] px-4 py-3 text-sm font-medium text-white transition hover:bg-white/[0.08]"
-                  >
-                    {showMap ? "Hide Map" : "Measure Fence on Map"}
-                  </button>
-                </div>
-
                 {showMap && (
-                  <div className="md:col-span-2">
-                  <div className="rounded-3xl border border-white/10 bg-white/[0.03] p-4">
+                  <div className="md:col-span-2 overflow-hidden rounded-3xl border border-white/10 bg-white/[0.03]">
+                    <div className="flex items-center justify-between border-b border-white/[0.06] px-4 py-2.5">
+                      <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Draw your fence line</p>
+                      <button
+                        type="button"
+                        onClick={() => setShowMap(false)}
+                        className="text-xs text-slate-500 transition hover:text-white"
+                      >
+                        Hide
+                      </button>
+                    </div>
+                    <div className="p-4">
                       <FenceDrawMap
                         address={fullAddress}
                         searchTrigger={searchTrigger}
-                        onDistanceChange={(feet) => {
-                          setLinearFeet(feet);
-                        }}
+                        onDistanceChange={(feet) => setLinearFeet(feet)}
                       />
+                    </div>
                   </div>
+                )}
+
+                {!showMap && canSearch && (
+                  <div className="md:col-span-2">
+                    <button
+                      type="button"
+                      onClick={() => { setShowMap(true); setSearchTrigger((prev) => prev + 1); }}
+                      className="text-xs text-slate-500 transition hover:text-white underline underline-offset-4"
+                    >
+                      Show map to draw fence line
+                    </button>
                   </div>
                 )}
 
