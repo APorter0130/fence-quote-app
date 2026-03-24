@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import FenceDrawMap from "../../components/fence-draw-map";
 import {
@@ -129,6 +129,15 @@ export default function QuotePage() {
     city.trim().length > 1 &&
     state.trim().length === 2 &&
     zip.trim().length === 5;
+
+  const hasAutoOpenedMap = useRef(false);
+  useEffect(() => {
+    if (canSearch && !hasAutoOpenedMap.current) {
+      hasAutoOpenedMap.current = true;
+      setShowMap(true);
+      setSearchTrigger((prev) => prev + 1);
+    }
+  }, [canSearch]);
 
   useEffect(() => {
     if (availablePricingOptions.length === 0) {
