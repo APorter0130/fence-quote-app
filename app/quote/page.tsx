@@ -708,23 +708,31 @@ export default function QuotePage() {
                 </div>
 
                 <div>
-                  <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-slate-300">Fence Height</label>
-                  <select
-                    value={fenceHeight}
-                    onChange={(e) => setFenceHeight(e.target.value as FenceHeight)}
-                    className={selectClass()}
-                  >
-                    {FENCE_HEIGHTS.map((height) => (
-                      <option
-                        key={height}
-                        value={height}
-                        className="bg-slate-900"
-                        disabled={!availableHeightsForFenceType.has(height)}
-                      >
-                        {height} ft
-                      </option>
-                    ))}
-                  </select>
+                  <label className="mb-3 block text-xs font-semibold uppercase tracking-[0.16em] text-slate-300">Fence Height</label>
+                  <div className="flex rounded-2xl border border-white/10 bg-white/[0.04] p-1">
+                    {FENCE_HEIGHTS.map((height) => {
+                      const isSelected = fenceHeight === height;
+                      const isAvailable = availableHeightsForFenceType.has(height);
+                      return (
+                        <button
+                          key={height}
+                          type="button"
+                          disabled={!isAvailable}
+                          onClick={() => setFenceHeight(height as FenceHeight)}
+                          className={[
+                            "flex-1 rounded-xl py-2.5 text-sm font-semibold transition-all duration-200",
+                            isSelected
+                              ? "bg-amber-400 text-slate-950 shadow-sm"
+                              : isAvailable
+                                ? "text-slate-400 hover:text-white"
+                                : "cursor-not-allowed text-slate-600 opacity-40",
+                          ].join(" ")}
+                        >
+                          {height} ft
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
 
                 <div>
