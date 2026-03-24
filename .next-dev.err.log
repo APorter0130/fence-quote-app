@@ -1,0 +1,46 @@
+⚠ [next]/internal/font/google/manrope_6a2daa6f.module.css
+Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&display=swap
+Hint: It looks like this error was TLS-related. Try enabling system TLS certificates with NEXT_TURBOPACK_EXPERIMENTAL_USE_SYSTEM_TLS_CERTS=1 as an environment variable, or set experimental.turbopackUseSystemTlsCerts in your next.config.js file.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/manrope_6a2daa6f.module.css
+    [next]/internal/font/google/manrope_6a2daa6f.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/space_grotesk_bf5435d1.module.css
+Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300..700&display=swap
+Hint: It looks like this error was TLS-related. Try enabling system TLS certificates with NEXT_TURBOPACK_EXPERIMENTAL_USE_SYSTEM_TLS_CERTS=1 as an environment variable, or set experimental.turbopackUseSystemTlsCerts in your next.config.js file.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/space_grotesk_bf5435d1.module.css
+    [next]/internal/font/google/space_grotesk_bf5435d1.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/manrope_6a2daa6f.module.css
+next/font: warning:
+Failed to download `Manrope` from Google Fonts. Using fallback font instead.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/manrope_6a2daa6f.module.css
+    [next]/internal/font/google/manrope_6a2daa6f.js
+    ./app/layout.tsx
+
+
+⚠ [next]/internal/font/google/space_grotesk_bf5435d1.module.css
+next/font: warning:
+Failed to download `Space Grotesk` from Google Fonts. Using fallback font instead.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/space_grotesk_bf5435d1.module.css
+    [next]/internal/font/google/space_grotesk_bf5435d1.js
+    ./app/layout.tsx
+
+
