@@ -854,30 +854,56 @@ export default function QuotePage() {
                 </div>
 
                 <div>
-                  <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-slate-300">Linear Feet</label>
-                  <input
-                    type="number"
-                    value={linearFeet}
-                    onChange={(e) => {
-                      setLinearFeet(Number(e.target.value));
-                      clearFieldError("linearFeet");
-                    }}
-                    className={inputClass("linearFeet", linearFeet > 0)}
-                  />
+                  <label className="mb-3 block text-xs font-semibold uppercase tracking-[0.16em] text-slate-300">Linear Feet</label>
+                  <div className={`flex overflow-hidden rounded-2xl border ${fieldErrors.linearFeet ? "border-rose-400/65" : "border-white/10"} bg-white/[0.04]`}>
+                    <button
+                      type="button"
+                      onClick={() => { setLinearFeet(Math.max(1, linearFeet - 10)); clearFieldError("linearFeet"); }}
+                      className="flex w-12 items-center justify-center text-xl font-light text-slate-400 transition hover:bg-white/[0.06] hover:text-white"
+                    >
+                      −
+                    </button>
+                    <input
+                      type="number"
+                      value={linearFeet}
+                      onChange={(e) => { setLinearFeet(Number(e.target.value)); clearFieldError("linearFeet"); }}
+                      className="w-full bg-transparent py-3.5 text-center text-xl font-bold text-white outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => { setLinearFeet(linearFeet + 10); clearFieldError("linearFeet"); }}
+                      className="flex w-12 items-center justify-center text-xl font-light text-slate-400 transition hover:bg-white/[0.06] hover:text-white"
+                    >
+                      +
+                    </button>
+                  </div>
                   {fieldErrors.linearFeet ? <p className="mt-2 text-xs text-rose-300">{fieldErrors.linearFeet}</p> : null}
                 </div>
 
                 <div>
-                  <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-slate-300">Number of Gates</label>
-                  <input
-                    type="number"
-                    value={gates}
-                    onChange={(e) => {
-                      setGates(Number(e.target.value));
-                      clearFieldError("gates");
-                    }}
-                    className={inputClass("gates", gates >= 0)}
-                  />
+                  <label className="mb-3 block text-xs font-semibold uppercase tracking-[0.16em] text-slate-300">Number of Gates</label>
+                  <div className={`flex overflow-hidden rounded-2xl border ${fieldErrors.gates ? "border-rose-400/65" : "border-white/10"} bg-white/[0.04]`}>
+                    <button
+                      type="button"
+                      onClick={() => { setGates(Math.max(0, gates - 1)); clearFieldError("gates"); }}
+                      className="flex w-12 items-center justify-center text-xl font-light text-slate-400 transition hover:bg-white/[0.06] hover:text-white"
+                    >
+                      −
+                    </button>
+                    <input
+                      type="number"
+                      value={gates}
+                      onChange={(e) => { setGates(Number(e.target.value)); clearFieldError("gates"); }}
+                      className="w-full bg-transparent py-3.5 text-center text-xl font-bold text-white outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => { setGates(gates + 1); clearFieldError("gates"); }}
+                      className="flex w-12 items-center justify-center text-xl font-light text-slate-400 transition hover:bg-white/[0.06] hover:text-white"
+                    >
+                      +
+                    </button>
+                  </div>
                   {fieldErrors.gates ? <p className="mt-2 text-xs text-rose-300">{fieldErrors.gates}</p> : null}
                 </div>
 
