@@ -571,55 +571,34 @@ export default function QuotePage() {
   }
 
   return (
-    <main className="min-h-screen px-4 py-10 text-white">
-      <div className="mx-auto max-w-6xl fade-in-up">
-        <header className="mb-8">
-          <div className="inline-flex rounded-full border border-white/10 bg-white/[0.05] px-3 py-1 text-xs font-semibold uppercase tracking-[0.15em] text-slate-300">
-            Instant Fence Estimator
+    <main className="min-h-screen px-4 py-12 text-white">
+      <div className="mx-auto max-w-2xl fade-in-up">
+        <header className="mb-10 text-center">
+          <div className="inline-flex items-center gap-2 rounded-full border border-amber-400/30 bg-amber-400/[0.08] px-4 py-1.5 text-xs font-bold uppercase tracking-[0.18em] text-amber-300">
+            {selectedContractor.name}
           </div>
-
-          <h1 className="mt-4 max-w-4xl text-4xl font-semibold tracking-tight md:text-5xl">
-            Request Your Fence Estimate
+          <h1 className="mt-5 text-4xl font-semibold tracking-tight md:text-5xl">
+            Get Your Fence Estimate
           </h1>
-
-          <p className="mt-4 max-w-3xl text-base leading-8 text-slate-300">
-            Share your project details and unlock a preliminary pricing range the moment
-            you submit.
+          <p className="mt-4 text-base leading-7 text-slate-400">
+            Fill in the details below — your pricing range unlocks the moment you submit.
           </p>
-
-          <p className="mt-4 text-sm font-medium text-amber-200/90">
-            Pricing for {selectedContractor.name}
-          </p>
-
-          <div className="mt-6 flex flex-wrap items-center gap-2.5 md:gap-3 text-xs text-slate-300">
-            <span className="inline-flex rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5">
-              No obligation
-            </span>
-            <span className="inline-flex rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5">
-              Saved to contractor dashboard
-            </span>
-            <span className="inline-flex rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5">
-              Usually reviewed within 1 business day
-            </span>
+          <div className="mt-6 flex flex-wrap justify-center gap-2 text-xs text-slate-500">
+            <span className="inline-flex rounded-full border border-white/[0.08] bg-white/[0.04] px-3 py-1.5">No obligation</span>
+            <span className="inline-flex rounded-full border border-white/[0.08] bg-white/[0.04] px-3 py-1.5">Saved to contractor dashboard</span>
+            <span className="inline-flex rounded-full border border-white/[0.08] bg-white/[0.04] px-3 py-1.5">Reviewed within 1 business day</span>
           </div>
         </header>
 
         <section className="glass-panel rounded-[32px] p-6 shadow-[0_20px_80px_rgba(0,0,0,0.35)] md:p-8">
-          <div className="mx-auto max-w-2xl">
             <form onSubmit={handleSubmit}>
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
-                  Project Details
-                </p>
-                <h2 className="mt-3 text-2xl font-semibold tracking-tight md:text-3xl">
-                  Tell us about your project
-                </h2>
-                <p className="mt-3 max-w-2xl text-sm leading-7 text-slate-300 md:text-base">
-                  Fill out all fields below to generate your estimate and submit your request.
-                </p>
+              <div className="flex items-center gap-3">
+                <span className="font-mono text-xs font-bold tracking-[0.2em] text-amber-400/70">01</span>
+                <span className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500">Contact</span>
+                <div className="h-px flex-1 bg-white/[0.08]" />
               </div>
 
-              <div className="mt-8 grid gap-5 md:grid-cols-2">
+              <div className="mt-5 grid gap-5 md:grid-cols-2">
                 <div className="md:col-span-2">
                   <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-slate-300">Full Name</label>
                   <input
@@ -662,6 +641,12 @@ export default function QuotePage() {
                     placeholder="(555) 555-5555"
                   />
                   {fieldErrors.customerPhone ? <p className="mt-2 text-xs text-rose-300">{fieldErrors.customerPhone}</p> : null}
+                </div>
+
+                <div className="md:col-span-2 flex items-center gap-3 pt-3">
+                  <span className="font-mono text-xs font-bold tracking-[0.2em] text-amber-400/70">02</span>
+                  <span className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500">Property Address</span>
+                  <div className="h-px flex-1 bg-white/[0.08]" />
                 </div>
 
                 <div className="grid gap-4 md:col-span-2 md:grid-cols-2">
@@ -764,6 +749,12 @@ export default function QuotePage() {
                   </div>
                   </div>
                 )}
+
+                <div className="md:col-span-2 flex items-center gap-3 pt-3">
+                  <span className="font-mono text-xs font-bold tracking-[0.2em] text-amber-400/70">03</span>
+                  <span className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500">Fence Details</span>
+                  <div className="h-px flex-1 bg-white/[0.08]" />
+                </div>
 
                 <div className="md:col-span-2">
                   <label className="mb-3 block text-xs font-semibold uppercase tracking-[0.16em] text-slate-300">Fence Type</label>
@@ -967,7 +958,6 @@ export default function QuotePage() {
                 </p>
               </div>
             </form>
-          </div>
         </section>
       </div>
     </main>
