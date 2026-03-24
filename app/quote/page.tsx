@@ -39,17 +39,17 @@ const FENCE_TYPE_META: Record<FenceType, { label: string; desc: string }> = {
   aluminum: { label: "Aluminum", desc: "Premium metal" },
 };
 
-function CedarIcon({ className }: { className?: string }) {
+function CedarIcon({ className, style }: { className?: string; style?: React.CSSProperties }) {
   return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <svg className={className} style={style} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
       <path d="M12 3L7.5 10h3V14L5.5 18v2h13v-2L14 14V10h3L12 3z" />
     </svg>
   );
 }
 
-function VinylIcon({ className }: { className?: string }) {
+function VinylIcon({ className, style }: { className?: string; style?: React.CSSProperties }) {
   return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+    <svg className={className} style={style} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
       <rect x="2" y="4" width="20" height="4" rx="1" />
       <rect x="2" y="10" width="20" height="4" rx="1" />
       <rect x="2" y="16" width="20" height="4" rx="1" />
@@ -57,18 +57,18 @@ function VinylIcon({ className }: { className?: string }) {
   );
 }
 
-function ChainLinkIcon({ className }: { className?: string }) {
+function ChainLinkIcon({ className, style }: { className?: string; style?: React.CSSProperties }) {
   return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+    <svg className={className} style={style} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
       <path d="M4 4L8 12L12 4L16 12L20 4" />
       <path d="M4 12L8 20L12 12L16 20L20 12" />
     </svg>
   );
 }
 
-function AluminumIcon({ className }: { className?: string }) {
+function AluminumIcon({ className, style }: { className?: string; style?: React.CSSProperties }) {
   return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+    <svg className={className} style={style} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
       <line x1="3" y1="6" x2="21" y2="6" />
       <line x1="3" y1="10" x2="21" y2="10" />
       <line x1="3" y1="14" x2="21" y2="14" />
@@ -80,12 +80,19 @@ function AluminumIcon({ className }: { className?: string }) {
   );
 }
 
-const FENCE_ICONS: Record<FenceType, React.ComponentType<{ className?: string }>> = {
+const FENCE_ICONS: Record<FenceType, React.ComponentType<{ className?: string; style?: React.CSSProperties }>> = {
   cedar: CedarIcon,
   vinyl: VinylIcon,
   "chain-link": ChainLinkIcon,
   aluminum: AluminumIcon,
 };
+
+function hexToRgba(hex: string, alpha: number): string {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
 
 export default function QuotePage() {
   const searchParams = useSearchParams();
@@ -434,6 +441,7 @@ export default function QuotePage() {
   }
 
   if (submitted && estimate) {
+    const ac = selectedContractor.accentColor;
     return (
       <main className="min-h-screen px-4 py-12 text-white">
         <div className="mx-auto max-w-3xl fade-in-up">
@@ -449,28 +457,38 @@ export default function QuotePage() {
             </h1>
             <p className="mt-3 text-base text-slate-400">
               Thanks, <span className="font-semibold text-white">{customerName}</span>. Routed to{" "}
-              <span className="font-semibold text-amber-300">{selectedContractor.name}</span>.
+              <span className="font-semibold" style={{ color: ac }}>{selectedContractor.name}</span>.
             </p>
           </div>
 
           {/* Price reveal card */}
-          <div className="relative overflow-hidden rounded-3xl border border-amber-400/25 bg-gradient-to-br from-amber-400/10 via-amber-400/5 to-transparent p-8 shadow-[0_0_60px_rgba(251,191,36,0.08)]">
-            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_50%_0%,rgba(251,191,36,0.1),transparent_65%)]" />
+          <div
+            className="relative overflow-hidden rounded-3xl border p-8"
+            style={{
+              borderColor: hexToRgba(ac, 0.25),
+              background: `linear-gradient(135deg, ${hexToRgba(ac, 0.10)}, ${hexToRgba(ac, 0.04)}, transparent)`,
+              boxShadow: `0 0 60px ${hexToRgba(ac, 0.08)}`,
+            }}
+          >
+            <div
+              className="pointer-events-none absolute inset-0"
+              style={{ background: `radial-gradient(ellipse at 50% 0%, ${hexToRgba(ac, 0.10)}, transparent 65%)` }}
+            />
 
-            <p className="relative text-center text-[11px] font-bold uppercase tracking-[0.22em] text-amber-400/70">
+            <p className="relative text-center text-[11px] font-bold uppercase tracking-[0.22em]" style={{ color: hexToRgba(ac, 0.70) }}>
               Estimated Range
             </p>
 
             <div className="relative mt-6 flex items-end justify-center gap-4 md:gap-8">
               <div className="text-center">
-                <p className="text-4xl font-extrabold tracking-tight text-white drop-shadow-[0_4px_24px_rgba(251,191,36,0.25)] md:text-6xl">
+                <p className="text-4xl font-extrabold tracking-tight text-white md:text-6xl" style={{ textShadow: `0 4px 24px ${hexToRgba(ac, 0.35)}` }}>
                   ${estimate.lowEstimate.toLocaleString()}
                 </p>
                 <p className="mt-1.5 text-[10px] font-bold uppercase tracking-widest text-slate-500">Low</p>
               </div>
-              <div className="mb-6 h-px w-10 bg-gradient-to-r from-amber-400/50 to-amber-400/50 md:w-16" />
+              <div className="mb-6 h-px w-10 md:w-16" style={{ backgroundColor: hexToRgba(ac, 0.50) }} />
               <div className="text-center">
-                <p className="text-4xl font-extrabold tracking-tight text-white drop-shadow-[0_4px_24px_rgba(251,191,36,0.25)] md:text-6xl">
+                <p className="text-4xl font-extrabold tracking-tight text-white md:text-6xl" style={{ textShadow: `0 4px 24px ${hexToRgba(ac, 0.35)}` }}>
                   ${estimate.highEstimate.toLocaleString()}
                 </p>
                 <p className="mt-1.5 text-[10px] font-bold uppercase tracking-widest text-slate-500">High</p>
@@ -551,7 +569,10 @@ export default function QuotePage() {
                   "You receive final follow-up for verified pricing.",
                 ].map((step, i) => (
                   <li key={i} className="flex gap-3 text-sm text-slate-300">
-                    <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-amber-400/30 bg-amber-400/10 text-[10px] font-bold text-amber-400">
+                    <span
+                      className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border text-[10px] font-bold"
+                      style={{ borderColor: hexToRgba(ac, 0.30), backgroundColor: hexToRgba(ac, 0.10), color: ac }}
+                    >
                       {i + 1}
                     </span>
                     {step}
@@ -583,7 +604,14 @@ export default function QuotePage() {
     <main className="min-h-screen px-4 py-12 text-white">
       <div className="mx-auto max-w-2xl fade-in-up">
         <header className="mb-10 text-center">
-          <div className="inline-flex items-center gap-2 rounded-full border border-amber-400/30 bg-amber-400/[0.08] px-4 py-1.5 text-xs font-bold uppercase tracking-[0.18em] text-amber-300">
+          <div
+            className="inline-flex items-center gap-2 rounded-full border px-4 py-1.5 text-xs font-bold uppercase tracking-[0.18em]"
+            style={{
+              color: selectedContractor.accentColor,
+              borderColor: hexToRgba(selectedContractor.accentColor, 0.30),
+              backgroundColor: hexToRgba(selectedContractor.accentColor, 0.08),
+            }}
+          >
             {selectedContractor.name}
           </div>
           <h1 className="mt-5 text-4xl font-semibold tracking-tight md:text-5xl">
@@ -602,7 +630,7 @@ export default function QuotePage() {
         <section className="glass-panel rounded-[32px] p-6 shadow-[0_20px_80px_rgba(0,0,0,0.35)] md:p-8">
             <form onSubmit={handleSubmit}>
               <div className="flex items-center gap-3">
-                <span className="font-mono text-xs font-bold tracking-[0.2em] text-amber-400/70">01</span>
+                <span className="font-mono text-xs font-bold tracking-[0.2em]" style={{ color: hexToRgba(selectedContractor.accentColor, 0.70) }}>01</span>
                 <span className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500">Contact</span>
                 <div className="h-px flex-1 bg-white/[0.08]" />
               </div>
@@ -653,7 +681,7 @@ export default function QuotePage() {
                 </div>
 
                 <div className="md:col-span-2 flex items-center gap-3 pt-3">
-                  <span className="font-mono text-xs font-bold tracking-[0.2em] text-amber-400/70">02</span>
+                  <span className="font-mono text-xs font-bold tracking-[0.2em]" style={{ color: hexToRgba(selectedContractor.accentColor, 0.70) }}>02</span>
                   <span className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500">Property Address</span>
                   <div className="h-px flex-1 bg-white/[0.08]" />
                 </div>
@@ -770,7 +798,7 @@ export default function QuotePage() {
                 )}
 
                 <div className="md:col-span-2 flex items-center gap-3 pt-3">
-                  <span className="font-mono text-xs font-bold tracking-[0.2em] text-amber-400/70">03</span>
+                  <span className="font-mono text-xs font-bold tracking-[0.2em]" style={{ color: hexToRgba(selectedContractor.accentColor, 0.70) }}>03</span>
                   <span className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500">Fence Details</span>
                   <div className="h-px flex-1 bg-white/[0.08]" />
                 </div>
@@ -791,13 +819,18 @@ export default function QuotePage() {
                           className={[
                             "flex flex-col items-center gap-2 rounded-2xl border px-3 py-4 text-center transition-all duration-200",
                             isSelected
-                              ? "border-amber-400/60 bg-amber-400/10 shadow-[0_0_18px_rgba(251,191,36,0.12)] text-white"
+                              ? "text-white"
                               : isAvailable
                                 ? "border-white/10 bg-white/[0.04] text-slate-400 hover:border-white/20 hover:bg-white/[0.07] hover:text-white"
                                 : "cursor-not-allowed border-white/5 bg-white/[0.02] text-slate-600 opacity-40",
                           ].join(" ")}
+                          style={isSelected ? {
+                            borderColor: hexToRgba(selectedContractor.accentColor, 0.60),
+                            backgroundColor: hexToRgba(selectedContractor.accentColor, 0.10),
+                            boxShadow: `0 0 18px ${hexToRgba(selectedContractor.accentColor, 0.12)}`,
+                          } : undefined}
                         >
-                          <Icon className={`h-7 w-7 ${isSelected ? "text-amber-400" : ""}`} />
+                          <Icon className="h-7 w-7" style={isSelected ? { color: selectedContractor.accentColor } : undefined} />
                           <span className="text-sm font-semibold">{FENCE_TYPE_META[type].label}</span>
                           <span className="text-[11px] opacity-60">{FENCE_TYPE_META[type].desc}</span>
                         </button>
@@ -821,11 +854,12 @@ export default function QuotePage() {
                           className={[
                             "flex-1 rounded-xl py-2.5 text-sm font-semibold transition-all duration-200",
                             isSelected
-                              ? "bg-amber-400 text-slate-950 shadow-sm"
+                              ? "text-slate-950 shadow-sm"
                               : isAvailable
                                 ? "text-slate-400 hover:text-white"
                                 : "cursor-not-allowed text-slate-600 opacity-40",
                           ].join(" ")}
+                          style={isSelected ? { backgroundColor: selectedContractor.accentColor } : undefined}
                         >
                           {height} ft
                         </button>
@@ -850,11 +884,16 @@ export default function QuotePage() {
                           className={[
                             "flex flex-col items-center gap-1.5 rounded-2xl border px-3 py-4 text-center transition-all duration-200",
                             isSelected
-                              ? "border-amber-400/60 bg-amber-400/10 shadow-[0_0_18px_rgba(251,191,36,0.12)] text-white"
+                              ? "text-white"
                               : "border-white/10 bg-white/[0.04] text-slate-400 hover:border-white/20 hover:bg-white/[0.07] hover:text-white",
                           ].join(" ")}
+                          style={isSelected ? {
+                            borderColor: hexToRgba(selectedContractor.accentColor, 0.60),
+                            backgroundColor: hexToRgba(selectedContractor.accentColor, 0.10),
+                            boxShadow: `0 0 18px ${hexToRgba(selectedContractor.accentColor, 0.12)}`,
+                          } : undefined}
                         >
-                          <span className={`font-mono text-base tracking-widest ${isSelected ? "text-amber-400" : ""}`}>{symbol}</span>
+                          <span className="font-mono text-base tracking-widest" style={isSelected ? { color: selectedContractor.accentColor } : undefined}>{symbol}</span>
                           <span className="text-sm font-semibold">{label}</span>
                           <span className="text-[11px] opacity-60">{desc}</span>
                         </button>
@@ -923,7 +962,8 @@ export default function QuotePage() {
                       type="checkbox"
                       checked={tearOut}
                       onChange={(e) => setTearOut(e.target.checked)}
-                      className="h-4 w-4 accent-amber-400"
+                      className="h-4 w-4"
+                      style={{ accentColor: selectedContractor.accentColor } as React.CSSProperties}
                     />
                     Include tear-out and removal of any existing fence
                   </label>
@@ -951,7 +991,10 @@ export default function QuotePage() {
                     "You receive final follow-up with verified pricing.",
                   ].map((step, i) => (
                     <li key={i} className="flex gap-3 text-sm text-slate-400">
-                      <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-amber-400/30 bg-amber-400/10 text-[10px] font-bold text-amber-400">
+                      <span
+                        className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border text-[10px] font-bold"
+                        style={{ borderColor: hexToRgba(selectedContractor.accentColor, 0.30), backgroundColor: hexToRgba(selectedContractor.accentColor, 0.10), color: selectedContractor.accentColor }}
+                      >
                         {i + 1}
                       </span>
                       {step}
