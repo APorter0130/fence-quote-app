@@ -92,6 +92,7 @@ export default function IframeHostSync() {
     }
 
     let frameId = 0;
+    const tenant = new URLSearchParams(window.location.search).get("contractor")?.trim() || "";
 
     const postSize = () => {
       const { height, width } = getDocumentSize();
@@ -102,6 +103,7 @@ export default function IframeHostSync() {
           height,
           width,
           path: `${window.location.pathname}${window.location.search}`,
+          tenant,
         },
         parentTargetOrigin,
       );
@@ -116,6 +118,7 @@ export default function IframeHostSync() {
       {
         type: IFRAME_READY_MESSAGE,
         path: `${window.location.pathname}${window.location.search}`,
+        tenant,
       },
       parentTargetOrigin,
     );

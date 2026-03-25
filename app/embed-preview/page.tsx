@@ -12,6 +12,7 @@ type EmbedEvent = {
   height?: number;
   width?: number;
   path?: string;
+  tenant?: string;
   origin: string;
   receivedAt: string;
 };
@@ -37,11 +38,21 @@ export default function EmbedPreviewPage() {
 
   useEffect(() => {
     const listener = (event: MessageEvent) => {
+      const expectedOrigin = window.location.origin;
+
+      if (event.origin !== expectedOrigin) {
+        return;
+      }
+
       if (
         !event.data ||
         (event.data.type !== IFRAME_READY_MESSAGE &&
           event.data.type !== IFRAME_RESIZE_MESSAGE)
       ) {
+        return;
+      }
+
+      if (event.data.tenant && event.data.tenant !== contractor) {
         return;
       }
 
@@ -55,6 +66,7 @@ export default function EmbedPreviewPage() {
           height: event.data.height,
           width: event.data.width,
           path: event.data.path,
+          tenant: event.data.tenant,
           origin: event.origin,
           receivedAt: new Date().toLocaleTimeString(),
         },
@@ -67,7 +79,7 @@ export default function EmbedPreviewPage() {
     return () => {
       window.removeEventListener("message", listener);
     };
-  }, []);
+  }, [contractor]);
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -169,6 +181,7 @@ export default function EmbedPreviewPage() {
                         <p className="mt-1">Time: {event.receivedAt}</p>
                         <p>Origin: {event.origin || "same-origin"}</p>
                         <p>Path: {event.path || "n/a"}</p>
+                        <p>Tenant: {event.tenant || "n/a"}</p>
                         {typeof event.height === "number" ? <p>Height: {event.height}px</p> : null}
                       </div>
                     ))

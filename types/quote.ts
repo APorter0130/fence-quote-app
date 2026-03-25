@@ -55,4 +55,5 @@ export type QuoteSubmissionPayload = {
   name: string;
   email: string;
   phone: string;
+  lead_source: string | null;
 };

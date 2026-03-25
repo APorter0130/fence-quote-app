@@ -18,9 +18,8 @@ export default function FenceDrawMap({ address, searchTrigger, onDistanceChange 
   const lastGeocodedPointRef = useRef<[number, number] | null>(null);
   const pointsRef = useRef<number[][]>([]);
   const pointMarkersRef = useRef<mapboxgl.Marker[]>([]);
-  const [debug, setDebug] = useState("idle");
-  const [geocodeDebug, setGeocodeDebug] = useState("");
-  const isDev = process.env.NODE_ENV !== "production";
+  const [, setDebug] = useState("idle");
+  const [, setGeocodeDebug] = useState("");
   const [totalFeet, setTotalFeet] = useState(0);
   const [isParcelLoading, setIsParcelLoading] = useState(false);
   const [keepParcelOverlay, setKeepParcelOverlay] = useState(true);

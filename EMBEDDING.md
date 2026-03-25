@@ -2,6 +2,12 @@
 
 The app now posts resize events to its parent window when it is loaded inside an iframe.
 
+It also supports tenant-level embed controls:
+
+- Per-contractor embed on/off switch
+- Per-contractor parent-origin allowlist
+- Optional signed embed URLs with expiration
+
 Quick setup:
 
 1. Use `/embed/quote?contractor=aj-fence` as the iframe URL.
@@ -11,6 +17,10 @@ Quick setup:
 Preferred embed URL:
 
 - `/embed/quote?contractor=aj-fence`
+
+Signed embed URL (when signature is required):
+
+- `/embed/quote?contractor=aj-fence&exp=<unix>&sig=<hmac>`
 
 Fallback embed URL when you need to keep the standard route:
 
@@ -25,7 +35,7 @@ Optional origin allowlist:
 
 - Set `NEXT_PUBLIC_IFRAME_PARENT_ORIGINS` to a comma-separated list of allowed parent origins.
 - Example: `NEXT_PUBLIC_IFRAME_PARENT_ORIGINS=https://www.contractorsite.com,https://staging.contractorsite.com`
-- When this variable is set, resize messages are sent only if `document.referrer` matches one of the configured origins.
+- This is a fallback only. Contractor-specific `iframe_parent_origins` values are preferred.
 
 Resize payload shape:
 
@@ -35,6 +45,7 @@ type FenceEstimatorResizeMessage = {
   height: number;
   width: number;
   path: string;
+  tenant: string;
 };
 ```
 
@@ -51,8 +62,18 @@ Example host page integration:
 
 <script>
   const iframe = document.getElementById("fence-estimator");
+  const expectedOrigin = "https://your-app.example";
+  const expectedTenant = "aj-fence";
 
   window.addEventListener("message", (event) => {
+    if (event.origin !== expectedOrigin) {
+      return;
+    }
+
+    if (event.data?.tenant && event.data.tenant !== expectedTenant) {
+      return;
+    }
+
     if (!event.data || event.data.type !== "fence-estimator:resize") {
       return;
     }
@@ -73,8 +94,18 @@ Copy-ready snippet:
 ></iframe>
 <script>
   const frame = document.querySelector('iframe[title="Fence estimator"]');
+  const expectedOrigin = "https://your-app.example";
+  const expectedTenant = "aj-fence";
 
   window.addEventListener("message", (event) => {
+    if (event.origin !== expectedOrigin) {
+      return;
+    }
+
+    if (event.data?.tenant && event.data.tenant !== expectedTenant) {
+      return;
+    }
+
     if (event.data?.type === "fence-estimator:resize") {
       frame.style.height = `${Math.ceil(event.data.height)}px`;
     }
@@ -87,8 +118,9 @@ Recommended host settings:
 - Set `scrolling="no"` on the iframe.
 - Keep the iframe width fluid with `width: 100%`.
 - Prefer the dedicated `/embed/quote` route. Use `&embed=1` on `/quote` only when the standard route must be reused.
-- If you plan to restrict messaging, set `NEXT_PUBLIC_IFRAME_PARENT_ORIGINS` before deployment.
+- If you plan to restrict messaging globally, set `NEXT_PUBLIC_IFRAME_PARENT_ORIGINS` before deployment.
 - On the host page, validate `event.origin` before applying the height update.
+- If signed URLs are required for a contractor, use the setup page button to generate a 30-day signed embed URL.
 
 Contractor handoff:
 

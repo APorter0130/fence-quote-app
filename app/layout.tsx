@@ -14,8 +14,9 @@ const bodyFont = Manrope({
 });
 
 export const metadata = {
-  title: "Fence Estimator",
-  description: "Fence quote tool",
+  title: "FenceQuote — Instant fence estimates for your website",
+  description:
+    "Embed an instant fence quote tool on your contractor website. Homeowners draw their fence on a map, get a real estimate, and you get the lead automatically.",
 };
 
 export default function RootLayout({

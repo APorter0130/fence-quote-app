@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, Suspense, useEffect, useMemo, useState } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 import FenceDrawMap from "../../components/fence-draw-map";
 import {
@@ -8,7 +8,6 @@ import {
   createUnavailableEstimate,
 } from "../../lib/pricing";
 import { buildQuotePayload } from "../../lib/quote-payload";
-import { supabase } from "../../lib/supabase";
 import { useContractorConfig } from "../../lib/use-contractor-config";
 import {
   FENCE_HEIGHTS,
@@ -32,11 +31,15 @@ type FieldKey =
   | "linearFeet"
   | "gates";
 
-export default function QuotePage() {
+function QuotePageContent() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const contractorParam = searchParams.get("contractor")?.trim() ?? "";
   const embedParam = searchParams.get("embed")?.trim().toLowerCase() ?? "";
+  const embedSigParam = searchParams.get("sig")?.trim() ?? "";
+  const embedExpParam = searchParams.get("exp")?.trim() ?? "";
+  const utmSource = searchParams.get("utm_source")?.trim() ?? "";
+  const leadSource = utmSource || contractorParam || null;
 
   const [customerName, setCustomerName] = useState("");
   const [customerEmail, setCustomerEmail] = useState("");
@@ -58,6 +61,10 @@ export default function QuotePage() {
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isEmbedded, setIsEmbedded] = useState(false);
+  const [isEmbedAccessLoading, setIsEmbedAccessLoading] = useState(false);
+  const [embedAccessError, setEmbedAccessError] = useState("");
+  const [tenantPrimaryColor, setTenantPrimaryColor] = useState("");
+  const [tenantSecondaryColor, setTenantSecondaryColor] = useState("");
   const [fieldErrors, setFieldErrors] = useState<Partial<Record<FieldKey, string>>>({});
 
   const {
@@ -126,6 +133,73 @@ export default function QuotePage() {
       setIsEmbedded(true);
     }
   }, []);
+
+  useEffect(() => {
+    if (!isEmbedMode) {
+      setEmbedAccessError("");
+      setIsEmbedAccessLoading(false);
+      return;
+    }
+
+    if (!contractorParam) {
+      setEmbedAccessError("Missing contractor in embed URL.");
+      return;
+    }
+
+    const controller = new AbortController();
+
+    async function validateEmbedAccess() {
+      setIsEmbedAccessLoading(true);
+      setEmbedAccessError("");
+
+      try {
+        const referrer = typeof document !== "undefined" ? document.referrer : "";
+        const query = new URLSearchParams({
+          contractor: contractorParam,
+          referrer,
+        });
+
+        if (embedSigParam) {
+          query.set("sig", embedSigParam);
+        }
+        if (embedExpParam) {
+          query.set("exp", embedExpParam);
+        }
+
+        const res = await fetch(`/api/embed/config?${query.toString()}`, {
+          signal: controller.signal,
+        });
+
+        const data = (await res.json()) as {
+          allowed?: boolean;
+          reason?: string;
+          tenant?: { primaryColor?: string | null; secondaryColor?: string | null };
+        };
+
+        if (!res.ok || data.allowed !== true) {
+          setEmbedAccessError(data.reason || "Embed access is not allowed for this host.");
+          return;
+        }
+
+        setTenantPrimaryColor(data.tenant?.primaryColor ?? "");
+        setTenantSecondaryColor(data.tenant?.secondaryColor ?? "");
+      } catch {
+        if (!controller.signal.aborted) {
+          setEmbedAccessError("Unable to validate embed access. Please try again.");
+        }
+      } finally {
+        if (!controller.signal.aborted) {
+          setIsEmbedAccessLoading(false);
+        }
+      }
+    }
+
+    void validateEmbedAccess();
+
+    return () => {
+      controller.abort();
+    };
+  }, [isEmbedMode, contractorParam, embedSigParam, embedExpParam]);
 
   useEffect(() => {
     if (availablePricingOptions.length === 0) {
@@ -345,6 +419,7 @@ export default function QuotePage() {
         tearOut,
         contractor: selectedContractor,
         estimate,
+        leadSource,
       });
 
       if (process.env.NODE_ENV !== "production") {
@@ -352,18 +427,16 @@ export default function QuotePage() {
         console.log("ESTIMATE:", estimate);
       }
 
-      const { error: insertError } = await supabase
-        .from("quote_submissions")
-        .insert(payload)
-        .select();
+      const res = await fetch("/api/quotes/submit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
 
-      if (insertError) {
-        setError(
-          insertError.message ||
-          insertError.details ||
-          insertError.hint ||
-          "Something went wrong saving your quote."
-        );
+      const json = await res.json();
+
+      if (!res.ok) {
+        setError(json?.error || "Something went wrong saving your quote.");
         return;
       }
 
@@ -483,6 +556,25 @@ export default function QuotePage() {
                   {selectedContractor.name} can now review your details and contact you.
                 </span>
               </div>
+            </div>
+          </section>
+        </div>
+      </main>
+    );
+  }
+
+  if (isEmbedMode && embedAccessError) {
+    return (
+      <main className="px-3 py-4 text-white sm:px-4 sm:py-6">
+        <div className="mx-auto max-w-3xl fade-in-up">
+          <section className="glass-panel overflow-hidden rounded-[28px] shadow-[0_20px_80px_rgba(0,0,0,0.35)]">
+            <div className="border-b border-white/10 px-4 py-4 sm:px-6 sm:py-5">
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-rose-300">
+                Embed Access Blocked
+              </p>
+            </div>
+            <div className="px-4 py-5 sm:px-6 sm:py-6">
+              <p className="text-sm text-slate-300">{embedAccessError}</p>
             </div>
           </section>
         </div>
@@ -790,7 +882,22 @@ export default function QuotePage() {
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
                   <button
                     type="submit"
-                    disabled={isSubmitting || isPricingLoading || !estimate || estimate.unavailable}
+                    disabled={
+                      isSubmitting ||
+                      isPricingLoading ||
+                      isEmbedAccessLoading ||
+                      !estimate ||
+                      estimate.unavailable
+                    }
+                    style={
+                      tenantPrimaryColor
+                        ? {
+                            backgroundImage: `linear-gradient(to right, ${tenantPrimaryColor}, ${
+                              tenantSecondaryColor || tenantPrimaryColor
+                            })`,
+                          }
+                        : undefined
+                    }
                     className="inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-amber-400 to-amber-500 px-6 py-3.5 text-sm font-semibold text-slate-900 shadow-[0_4px_20px_rgba(245,158,11,0.28)] transition active:scale-[0.98] hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
                   >
                     {isSubmitting && (
@@ -801,6 +908,8 @@ export default function QuotePage() {
                     )}
                     {isSubmitting
                       ? "Submitting..."
+                      : isEmbedAccessLoading
+                        ? "Validating Embed..."
                       : isPricingLoading
                         ? "Loading Pricing..."
                         : "Get My Estimate"}
@@ -854,6 +963,20 @@ export default function QuotePage() {
         </section>
       </div>
     </main>
+  );
+}
+
+export default function QuotePage() {
+  return (
+    <Suspense
+      fallback={
+        <main className="min-h-screen px-4 py-10 text-white">
+          <div className="mx-auto max-w-4xl text-center text-slate-400">Loading quote form...</div>
+        </main>
+      }
+    >
+      <QuotePageContent />
+    </Suspense>
   );
 }
 

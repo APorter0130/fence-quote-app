@@ -24,6 +24,7 @@ type BuildQuotePayloadParams = {
   tearOut: boolean;
   contractor: Contractor;
   estimate: QuoteEstimateResult;
+  leadSource?: string | null;
 };
 
 export function buildQuotePayload(
@@ -46,6 +47,7 @@ export function buildQuotePayload(
     tearOut,
     contractor,
     estimate,
+    leadSource,
   } = params;
 
   return {
@@ -73,5 +75,6 @@ export function buildQuotePayload(
     name: customerName,
     email: customerEmail,
     phone: customerPhone,
+    lead_source: leadSource ?? null,
   };
 }

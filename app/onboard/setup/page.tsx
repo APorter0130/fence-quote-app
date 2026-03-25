@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { FENCE_HEIGHTS, FENCE_TYPES } from "../../../types/quote";
 import type { FenceHeight, FenceType } from "../../../types/quote";
 
@@ -23,6 +23,14 @@ type PricingRow = {
 type ContractorInfo = {
   id: string;
   slug: string;
+};
+
+type EmbedSettings = {
+  embed_enabled: boolean;
+  iframe_parent_origins: string;
+  require_embed_signature: boolean;
+  brand_primary_color: string;
+  brand_secondary_color: string;
 };
 
 const FENCE_TYPE_LABELS: Record<FenceType, string> = {
@@ -93,7 +101,7 @@ function numInput(
   );
 }
 
-export default function OnboardSetupPage() {
+function OnboardSetupPageContent() {
   const searchParams = useSearchParams();
   const token = searchParams.get("token") ?? "";
 
@@ -114,6 +122,14 @@ export default function OnboardSetupPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState("");
   const [saved, setSaved] = useState(false);
+  const [embedEnabled, setEmbedEnabled] = useState(true);
+  const [iframeParentOrigins, setIframeParentOrigins] = useState("");
+  const [requireEmbedSignature, setRequireEmbedSignature] = useState(false);
+  const [brandPrimaryColor, setBrandPrimaryColor] = useState("#f59e0b");
+  const [brandSecondaryColor, setBrandSecondaryColor] = useState("#fbbf24");
+  const [signedEmbedPath, setSignedEmbedPath] = useState("");
+  const [signedEmbedExpires, setSignedEmbedExpires] = useState("");
+  const [isGeneratingSignedLink, setIsGeneratingSignedLink] = useState(false);
 
   useEffect(() => {
     if (!token) {
@@ -124,7 +140,13 @@ export default function OnboardSetupPage() {
 
     fetch(`/api/onboard/pricing?token=${encodeURIComponent(token)}`)
       .then((r) => r.json())
-      .then((data: { contractor?: ContractorInfo; pricing?: PricingRow[]; error?: string }) => {
+      .then(
+        (data: {
+          contractor?: ContractorInfo;
+          pricing?: PricingRow[];
+          settings?: EmbedSettings;
+          error?: string;
+        }) => {
         if (data.error) {
           setAuthError(data.error);
           return;
@@ -152,10 +174,44 @@ export default function OnboardSetupPage() {
           setGradeMod(Number(first.grade_multiplier_moderate));
           setGradeSteep(Number(first.grade_multiplier_steep));
         }
+
+        if (data.settings) {
+          setEmbedEnabled(data.settings.embed_enabled !== false);
+          setIframeParentOrigins(data.settings.iframe_parent_origins ?? "");
+          setRequireEmbedSignature(data.settings.require_embed_signature === true);
+          setBrandPrimaryColor(data.settings.brand_primary_color || "#f59e0b");
+          setBrandSecondaryColor(data.settings.brand_secondary_color || "#fbbf24");
+        }
       })
       .catch(() => setAuthError("Failed to load pricing data."))
       .finally(() => setIsLoading(false));
   }, [token]);
+
+  async function generateSignedEmbedLink() {
+    setSaveError("");
+    setIsGeneratingSignedLink(true);
+
+    try {
+      const res = await fetch(`/api/onboard/embed-link?token=${encodeURIComponent(token)}&days=30`);
+      const data = (await res.json()) as {
+        embedPath?: string;
+        expiresAtIso?: string;
+        error?: string;
+      };
+
+      if (!res.ok || data.error || !data.embedPath) {
+        setSaveError(data.error ?? "Failed to generate signed embed link.");
+        return;
+      }
+
+      setSignedEmbedPath(data.embedPath);
+      setSignedEmbedExpires(data.expiresAtIso ?? "");
+    } catch {
+      setSaveError("Failed to generate signed embed link.");
+    } finally {
+      setIsGeneratingSignedLink(false);
+    }
+  }
 
   function updatePpf(fence_type: FenceType, fence_height: FenceHeight, value: number) {
     setRows((prev) =>
@@ -182,16 +238,25 @@ export default function OnboardSetupPage() {
     setSaved(false);
     setIsSaving(true);
 
-    const payload = rows.map((r) => ({
-      ...r,
-      gate_price: gatePrice,
-      tear_out_fee: tearOutFee,
-      minimum_job_price: minJobPrice,
-      estimate_high_multiplier: highMultiplier,
-      grade_multiplier_flat: gradeFlat,
-      grade_multiplier_moderate: gradeMod,
-      grade_multiplier_steep: gradeSteep,
-    }));
+    const payload = {
+      pricing: rows.map((r) => ({
+        ...r,
+        gate_price: gatePrice,
+        tear_out_fee: tearOutFee,
+        minimum_job_price: minJobPrice,
+        estimate_high_multiplier: highMultiplier,
+        grade_multiplier_flat: gradeFlat,
+        grade_multiplier_moderate: gradeMod,
+        grade_multiplier_steep: gradeSteep,
+      })),
+      settings: {
+        embed_enabled: embedEnabled,
+        iframe_parent_origins: iframeParentOrigins,
+        require_embed_signature: requireEmbedSignature,
+        brand_primary_color: brandPrimaryColor,
+        brand_secondary_color: brandSecondaryColor,
+      },
+    };
 
     try {
       const res = await fetch(`/api/onboard/pricing?token=${encodeURIComponent(token)}`, {
@@ -394,6 +459,99 @@ export default function OnboardSetupPage() {
         </section>
 
         {/* Save */}
+        <section className="glass-panel mt-6 rounded-[32px] p-6 md:p-8">
+          <p className="mb-1 text-xs font-bold uppercase tracking-[0.2em] text-slate-500">
+            Embed Security & Branding
+          </p>
+          <p className="mb-6 text-xs text-slate-500">
+            Control iframe access per tenant and keep embeds white-label.
+          </p>
+
+          <div className="grid gap-5 sm:grid-cols-2">
+            <label className="flex cursor-pointer items-center gap-2 text-sm text-slate-300">
+              <input
+                type="checkbox"
+                checked={embedEnabled}
+                onChange={(e) => setEmbedEnabled(e.target.checked)}
+                className="h-4 w-4 accent-amber-400"
+              />
+              Embedding enabled
+            </label>
+
+            <label className="flex cursor-pointer items-center gap-2 text-sm text-slate-300">
+              <input
+                type="checkbox"
+                checked={requireEmbedSignature}
+                onChange={(e) => setRequireEmbedSignature(e.target.checked)}
+                className="h-4 w-4 accent-amber-400"
+              />
+              Require signed embed URLs
+            </label>
+
+            <div className="sm:col-span-2">
+              <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.14em] text-slate-400">
+                Allowed Parent Origins (comma-separated)
+              </label>
+              <textarea
+                value={iframeParentOrigins}
+                onChange={(e) => setIframeParentOrigins(e.target.value)}
+                rows={3}
+                placeholder="https://www.contractorsite.com, https://staging.contractorsite.com"
+                className="w-full rounded-xl border border-white/10 bg-white/[0.05] px-3 py-2 text-sm text-white outline-none transition focus:border-amber-400/70 focus:ring-2 focus:ring-amber-400/10"
+              />
+            </div>
+
+            <div>
+              <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.14em] text-slate-400">
+                Primary Brand Color
+              </label>
+              <input
+                value={brandPrimaryColor}
+                onChange={(e) => setBrandPrimaryColor(e.target.value)}
+                className="w-full rounded-xl border border-white/10 bg-white/[0.05] px-3 py-2 text-sm text-white outline-none transition focus:border-amber-400/70 focus:ring-2 focus:ring-amber-400/10"
+                placeholder="#f59e0b"
+              />
+            </div>
+
+            <div>
+              <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.14em] text-slate-400">
+                Secondary Brand Color
+              </label>
+              <input
+                value={brandSecondaryColor}
+                onChange={(e) => setBrandSecondaryColor(e.target.value)}
+                className="w-full rounded-xl border border-white/10 bg-white/[0.05] px-3 py-2 text-sm text-white outline-none transition focus:border-amber-400/70 focus:ring-2 focus:ring-amber-400/10"
+                placeholder="#fbbf24"
+              />
+            </div>
+          </div>
+
+          <div className="mt-5 rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <p className="text-xs text-slate-400">
+                Signed URLs add exp + sig and can expire automatically.
+              </p>
+              <button
+                type="button"
+                onClick={generateSignedEmbedLink}
+                disabled={isGeneratingSignedLink}
+                className="inline-flex items-center justify-center rounded-xl border border-white/10 bg-white/[0.05] px-4 py-2 text-xs font-semibold text-white transition hover:bg-white/[0.08] disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {isGeneratingSignedLink ? "Generating..." : "Generate 30-day signed URL"}
+              </button>
+            </div>
+
+            {signedEmbedPath ? (
+              <div className="mt-3 text-xs text-slate-300">
+                <p className="font-mono break-all text-white">{signedEmbedPath}</p>
+                {signedEmbedExpires ? (
+                  <p className="mt-1 text-slate-400">Expires: {signedEmbedExpires}</p>
+                ) : null}
+              </div>
+            ) : null}
+          </div>
+        </section>
+
         <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
           <button
             onClick={handleSave}
@@ -432,5 +590,19 @@ export default function OnboardSetupPage() {
         </p>
       </div>
     </main>
+  );
+}
+
+export default function OnboardSetupPage() {
+  return (
+    <Suspense
+      fallback={
+        <main className="min-h-screen px-4 py-12 text-white">
+          <div className="mx-auto mt-24 max-w-3xl text-center text-slate-400">Loading setup...</div>
+        </main>
+      }
+    >
+      <OnboardSetupPageContent />
+    </Suspense>
   );
 }

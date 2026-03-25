@@ -3,18 +3,41 @@ import { supabase } from "../../../../lib/supabase";
 import { FENCE_TYPES, FENCE_HEIGHTS } from "../../../../types/quote";
 import type { FenceType, FenceHeight } from "../../../../types/quote";
 
+type ContractorEmbedSettings = {
+  embed_enabled: boolean;
+  iframe_parent_origins: string;
+  require_embed_signature: boolean;
+  brand_primary_color: string;
+  brand_secondary_color: string;
+};
+
 async function resolveContractorByToken(
   token: string
-): Promise<{ id: string; slug: string } | null> {
+): Promise<{ id: string; slug: string; settings: ContractorEmbedSettings } | null> {
   if (!token || token.length !== 64) return null;
 
   const { data } = await supabase
     .from("contractors")
-    .select("id, slug")
+    .select("*")
     .eq("edit_token", token)
-    .maybeSingle<{ id: string; slug: string }>();
+    .maybeSingle<Record<string, unknown>>();
 
-  return data ?? null;
+  if (!data || typeof data.id !== "string" || typeof data.slug !== "string") {
+    return null;
+  }
+
+  const settings: ContractorEmbedSettings = {
+    embed_enabled: data.embed_enabled !== false,
+    iframe_parent_origins:
+      typeof data.iframe_parent_origins === "string" ? data.iframe_parent_origins : "",
+    require_embed_signature: data.require_embed_signature === true,
+    brand_primary_color:
+      typeof data.brand_primary_color === "string" ? data.brand_primary_color : "",
+    brand_secondary_color:
+      typeof data.brand_secondary_color === "string" ? data.brand_secondary_color : "",
+  };
+
+  return { id: data.id, slug: data.slug, settings };
 }
 
 export async function GET(req: NextRequest) {
@@ -36,7 +59,11 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  return NextResponse.json({ contractor, pricing: data ?? [] });
+  return NextResponse.json({
+    contractor: { id: contractor.id, slug: contractor.slug },
+    pricing: data ?? [],
+    settings: contractor.settings,
+  });
 }
 
 type PricingRowInput = {
@@ -68,8 +95,17 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Invalid request body." }, { status: 400 });
   }
 
-  if (!Array.isArray(body)) {
-    return NextResponse.json({ error: "Expected an array of pricing rows." }, { status: 400 });
+  const rawRows = Array.isArray(body)
+    ? body
+    : body && typeof body === "object" && Array.isArray((body as { pricing?: unknown }).pricing)
+      ? ((body as { pricing: unknown[] }).pricing ?? [])
+      : null;
+
+  if (!rawRows) {
+    return NextResponse.json(
+      { error: "Expected an array of pricing rows or { pricing, settings }." },
+      { status: 400 }
+    );
   }
 
   const validFenceTypes = new Set<string>(FENCE_TYPES);
@@ -77,7 +113,7 @@ export async function POST(req: NextRequest) {
 
   const rows: PricingRowInput[] = [];
 
-  for (const row of body) {
+  for (const row of rawRows) {
     if (!row || typeof row !== "object") {
       return NextResponse.json({ error: "Invalid pricing row." }, { status: 400 });
     }
@@ -140,6 +176,50 @@ export async function POST(req: NextRequest) {
 
   if (upsertError) {
     return NextResponse.json({ error: upsertError.message }, { status: 500 });
+  }
+
+  const rawSettings =
+    body && typeof body === "object" && !Array.isArray(body)
+      ? (body as { settings?: unknown }).settings
+      : undefined;
+
+  if (rawSettings && typeof rawSettings === "object") {
+    const settings = rawSettings as Record<string, unknown>;
+    const updatePayload: Record<string, unknown> = {};
+
+    if (typeof settings.embed_enabled === "boolean") {
+      updatePayload.embed_enabled = settings.embed_enabled;
+    }
+    if (typeof settings.iframe_parent_origins === "string") {
+      updatePayload.iframe_parent_origins = settings.iframe_parent_origins;
+    }
+    if (typeof settings.require_embed_signature === "boolean") {
+      updatePayload.require_embed_signature = settings.require_embed_signature;
+    }
+    if (typeof settings.brand_primary_color === "string") {
+      updatePayload.brand_primary_color = settings.brand_primary_color;
+    }
+    if (typeof settings.brand_secondary_color === "string") {
+      updatePayload.brand_secondary_color = settings.brand_secondary_color;
+    }
+
+    if (Object.keys(updatePayload).length > 0) {
+      const { error: contractorUpdateError } = await supabase
+        .from("contractors")
+        .update(updatePayload)
+        .eq("id", contractor.id);
+
+      if (contractorUpdateError) {
+        return NextResponse.json(
+          {
+            error:
+              "Pricing saved, but embed settings failed to save. You may need contractor embed columns in Supabase.",
+            details: contractorUpdateError.message,
+          },
+          { status: 500 }
+        );
+      }
+    }
   }
 
   return NextResponse.json({ ok: true, saved: rows.length });
