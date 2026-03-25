@@ -1,7 +1,7 @@
 "use client";
 
 import { FormEvent, useEffect, useMemo, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import FenceDrawMap from "../../components/fence-draw-map";
 import {
   calculateQuoteFromPricing,
@@ -33,8 +33,10 @@ type FieldKey =
   | "gates";
 
 export default function QuotePage() {
+  const pathname = usePathname();
   const searchParams = useSearchParams();
   const contractorParam = searchParams.get("contractor")?.trim() ?? "";
+  const embedParam = searchParams.get("embed")?.trim().toLowerCase() ?? "";
 
   const [customerName, setCustomerName] = useState("");
   const [customerEmail, setCustomerEmail] = useState("");
@@ -55,6 +57,7 @@ export default function QuotePage() {
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isEmbedded, setIsEmbedded] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<Partial<Record<FieldKey, string>>>({});
 
   const {
@@ -74,6 +77,55 @@ export default function QuotePage() {
     city.trim().length > 1 &&
     state.trim().length === 2 &&
     zip.trim().length === 5;
+
+  const isEmbedRoute = pathname.startsWith("/embed/");
+  const isEmbedQueryMode = embedParam === "1" || embedParam === "true" || embedParam === "yes";
+  const isEmbedMode = isEmbedded || isEmbedRoute || isEmbedQueryMode;
+
+  const pageMainClassName = isEmbedMode
+    ? "px-3 py-4 text-white sm:px-4 sm:py-6"
+    : "min-h-screen px-4 py-10 text-white";
+
+  const pageShellClassName = isEmbedMode ? "mx-auto max-w-4xl fade-in-up" : "mx-auto max-w-6xl fade-in-up";
+
+  const sectionClassName = isEmbedMode
+    ? "glass-panel rounded-[28px] p-4 shadow-[0_20px_80px_rgba(0,0,0,0.35)] sm:p-6"
+    : "glass-panel rounded-[32px] p-6 shadow-[0_20px_80px_rgba(0,0,0,0.35)] md:p-8";
+
+  const contentGridClassName = isEmbedMode
+    ? "grid gap-5 lg:grid-cols-[1.18fr_0.82fr]"
+    : "grid gap-8 lg:grid-cols-[1.2fr_0.8fr]";
+
+  const stickySubmitClassName = isEmbedMode
+    ? "mt-8 rounded-2xl border border-white/10 bg-slate-950/65 p-3 backdrop-blur"
+    : "sticky bottom-3 mt-8 rounded-2xl border border-white/10 bg-slate-950/65 p-3 backdrop-blur md:static md:border-0 md:bg-transparent md:p-0";
+
+  const headerClassName = isEmbedMode ? "mb-5" : "mb-8";
+  const headerEyebrow = isEmbedMode ? "Fence Estimate" : "Instant Fence Estimator";
+  const headerTitle = isEmbedMode ? "Get a quick project range" : "Request Your Fence Estimate";
+  const headerDescription = isEmbedMode
+    ? "Submit project details and see a preliminary range without leaving the contractor site."
+    : "Share your project details and unlock a preliminary pricing range the moment you submit.";
+  const formIntroTitle = isEmbedMode ? "Project details" : "Tell us about your project";
+  const formIntroDescription = isEmbedMode
+    ? "Complete the fields below to route the request and generate an estimate."
+    : "Fill out all fields below to generate your estimate and submit your request.";
+  const statusShellClassName = isEmbedMode ? "mx-auto max-w-3xl fade-in-up" : "mx-auto max-w-4xl fade-in-up";
+  const statusSectionClassName = isEmbedMode
+    ? "glass-panel overflow-hidden rounded-[28px] shadow-[0_20px_80px_rgba(0,0,0,0.35)]"
+    : "glass-panel overflow-hidden rounded-[32px] shadow-[0_20px_80px_rgba(0,0,0,0.35)]";
+  const statusHeaderClassName = isEmbedMode
+    ? "border-b border-white/10 px-4 py-4 sm:px-6 sm:py-5"
+    : "border-b border-white/10 px-6 py-6 md:px-10";
+  const statusBodyClassName = isEmbedMode ? "px-4 py-5 sm:px-6 sm:py-6" : "px-6 py-8 md:px-10";
+
+  useEffect(() => {
+    try {
+      setIsEmbedded(window.self !== window.top);
+    } catch {
+      setIsEmbedded(true);
+    }
+  }, []);
 
   useEffect(() => {
     if (availablePricingOptions.length === 0) {
@@ -319,18 +371,20 @@ export default function QuotePage() {
 
   if (isContractorLoading) {
     return (
-      <main className="min-h-screen px-4 py-10 text-white">
-        <div className="mx-auto max-w-3xl fade-in-up">
-          <section className="glass-panel overflow-hidden rounded-[32px] shadow-[0_20px_80px_rgba(0,0,0,0.35)]">
-            <div className="border-b border-white/10 bg-gradient-to-r from-amber-300/15 via-transparent to-transparent px-6 py-6 md:px-10">
+      <main className={pageMainClassName}>
+        <div className={statusShellClassName}>
+          <section className={statusSectionClassName}>
+            <div className={`${statusHeaderClassName} bg-gradient-to-r from-amber-300/15 via-transparent to-transparent`}>
               <div className="inline-flex rounded-full border border-amber-300/40 bg-amber-300/15 px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-amber-200">
                 Loading
               </div>
-              <h1 className="mt-4 text-3xl font-semibold tracking-tight md:text-4xl">
+              <h1 className={isEmbedMode ? "mt-3 text-2xl font-semibold tracking-tight sm:text-3xl" : "mt-4 text-3xl font-semibold tracking-tight md:text-4xl"}>
                 Loading contractor configuration
               </h1>
-              <p className="mt-3 max-w-2xl text-sm leading-7 text-slate-300 md:text-base">
-                This quote form is resolving the contractor tied to your embed link.
+              <p className={isEmbedMode ? "mt-2 max-w-2xl text-sm leading-6 text-slate-300" : "mt-3 max-w-2xl text-sm leading-7 text-slate-300 md:text-base"}>
+                {isEmbedMode
+                  ? "Resolving the contractor tied to this embedded quote form."
+                  : "This quote form is resolving the contractor tied to your embed link."}
               </p>
             </div>
           </section>
@@ -341,24 +395,24 @@ export default function QuotePage() {
 
   if (!selectedContractor) {
     return (
-      <main className="min-h-screen px-4 py-10 text-white">
-        <div className="mx-auto max-w-3xl fade-in-up">
-          <section className="glass-panel overflow-hidden rounded-[32px] shadow-[0_20px_80px_rgba(0,0,0,0.35)]">
-            <div className="border-b border-white/10 bg-gradient-to-r from-rose-300/15 via-transparent to-transparent px-6 py-6 md:px-10">
+      <main className={pageMainClassName}>
+        <div className={statusShellClassName}>
+          <section className={statusSectionClassName}>
+            <div className={`${statusHeaderClassName} bg-gradient-to-r from-rose-300/15 via-transparent to-transparent`}>
               <div className="inline-flex rounded-full border border-rose-300/40 bg-rose-300/15 px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-rose-200">
                 Invalid Quote Link
               </div>
-              <h1 className="mt-4 text-3xl font-semibold tracking-tight md:text-4xl">
+              <h1 className={isEmbedMode ? "mt-3 text-2xl font-semibold tracking-tight sm:text-3xl" : "mt-4 text-3xl font-semibold tracking-tight md:text-4xl"}>
                 This contractor link could not be resolved
               </h1>
-              <p className="mt-3 max-w-2xl text-sm leading-7 text-slate-300 md:text-base">
+              <p className={isEmbedMode ? "mt-2 max-w-2xl text-sm leading-6 text-slate-300" : "mt-3 max-w-2xl text-sm leading-7 text-slate-300 md:text-base"}>
                 Use a valid contractor identifier in the quote URL, for example
                 <span className="font-medium text-white"> ?contractor=aj-fence</span>
                 or the contractor UUID.
               </p>
             </div>
 
-            <div className="px-6 py-8 md:px-10 text-sm leading-7 text-slate-300">
+            <div className={`${statusBodyClassName} text-sm leading-7 text-slate-300`}>
               <p>
                 {contractorError || "The form is intentionally blocked here so submissions are not attached to the wrong contractor."}
               </p>
@@ -371,17 +425,17 @@ export default function QuotePage() {
 
   if (submitted && estimate) {
     return (
-      <main className="min-h-screen px-4 py-10 text-white">
-        <div className="mx-auto max-w-4xl fade-in-up">
-          <section className="glass-panel overflow-hidden rounded-[32px] shadow-[0_20px_80px_rgba(0,0,0,0.35)]">
-            <div className="border-b border-white/10 bg-gradient-to-r from-emerald-300/15 via-transparent to-transparent px-6 py-6 md:px-10">
+      <main className={pageMainClassName}>
+        <div className={statusShellClassName}>
+          <section className={statusSectionClassName}>
+            <div className={`${statusHeaderClassName} bg-gradient-to-r from-emerald-300/15 via-transparent to-transparent`}>
               <div className="inline-flex rounded-full border border-emerald-300/40 bg-emerald-300/15 px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-emerald-200">
                 Estimate Ready
               </div>
-              <h1 className="mt-4 text-3xl font-semibold tracking-tight md:text-4xl">
+              <h1 className={isEmbedMode ? "mt-3 text-2xl font-semibold tracking-tight sm:text-3xl" : "mt-4 text-3xl font-semibold tracking-tight md:text-4xl"}>
                 Your preliminary range is unlocked
               </h1>
-              <p className="mt-3 max-w-2xl text-sm leading-7 text-slate-300 md:text-base">
+              <p className={isEmbedMode ? "mt-2 max-w-2xl text-sm leading-6 text-slate-300" : "mt-3 max-w-2xl text-sm leading-7 text-slate-300 md:text-base"}>
                 Thanks, {customerName}. Your request is in the contractor dashboard,
                 and your current projected range is below.
               </p>
@@ -390,25 +444,25 @@ export default function QuotePage() {
               </p>
             </div>
 
-            <div className="px-6 py-8 md:px-10">
-              <div className="rounded-[26px] border border-amber-300/20 bg-gradient-to-br from-amber-300/12 via-white/[0.03] to-transparent p-6">
+            <div className={statusBodyClassName}>
+              <div className={isEmbedMode ? "rounded-[24px] border border-amber-300/20 bg-gradient-to-br from-amber-300/12 via-white/[0.03] to-transparent p-4 sm:p-5" : "rounded-[26px] border border-amber-300/20 bg-gradient-to-br from-amber-300/12 via-white/[0.03] to-transparent p-6"}>
                 <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-amber-200/90">
                   Estimated Range
                 </p>
                 <p className="mt-4">
-                  <span className="inline-flex rounded-2xl border border-amber-200/20 bg-amber-200/10 px-4 py-2 text-4xl font-extrabold tracking-tight leading-none text-white drop-shadow-[0_8px_24px_rgba(245,158,11,0.32)] md:text-6xl">
+                  <span className={isEmbedMode ? "inline-flex rounded-2xl border border-amber-200/20 bg-amber-200/10 px-3 py-2 text-2xl font-extrabold leading-tight tracking-tight text-white drop-shadow-[0_8px_24px_rgba(245,158,11,0.32)] sm:text-3xl" : "inline-flex rounded-2xl border border-amber-200/20 bg-amber-200/10 px-4 py-2 text-4xl font-extrabold tracking-tight leading-none text-white drop-shadow-[0_8px_24px_rgba(245,158,11,0.32)] md:text-6xl"}>
                     ${estimate.lowEstimate.toLocaleString()} - ${estimate.highEstimate.toLocaleString()}
                   </span>
                 </p>
-                <p className="mt-4 max-w-2xl text-sm leading-7 text-slate-300">
+                <p className={isEmbedMode ? "mt-3 max-w-2xl text-sm leading-6 text-slate-300" : "mt-4 max-w-2xl text-sm leading-7 text-slate-300"}>
                   This estimate is based on your selections and measured fence footage.
                 </p>
-                <p className="mt-4 text-xs leading-5 text-slate-400">
+                <p className="mt-3 text-xs leading-5 text-slate-400">
                   Final pricing may vary based on layout, site access, removal needs, and other field conditions.
                 </p>
               </div>
 
-              <div className="mt-8 flex flex-wrap items-center gap-3">
+              <div className={isEmbedMode ? "mt-5 flex flex-col items-start gap-3 sm:flex-row sm:items-center" : "mt-8 flex flex-wrap items-center gap-3"}>
                 <button
                   onClick={() => setSubmitted(false)}
                   className="inline-flex items-center justify-center rounded-2xl bg-white px-5 py-3 text-sm font-semibold text-slate-950 transition hover:opacity-90"
@@ -427,55 +481,58 @@ export default function QuotePage() {
   }
 
   return (
-    <main className="min-h-screen px-4 py-10 text-white">
-      <div className="mx-auto max-w-6xl fade-in-up">
-        <header className="mb-8">
+    <main className={pageMainClassName}>
+      <div className={pageShellClassName}>
+        <header className={headerClassName}>
           <div className="inline-flex rounded-full border border-white/10 bg-white/[0.05] px-3 py-1 text-xs font-semibold uppercase tracking-[0.15em] text-slate-300">
-            Instant Fence Estimator
+            {headerEyebrow}
           </div>
 
-          <h1 className="mt-4 max-w-4xl text-4xl font-semibold tracking-tight md:text-5xl">
-            Request Your Fence Estimate
+          <h1 className={isEmbedMode ? "mt-3 max-w-3xl text-3xl font-semibold tracking-tight sm:text-4xl" : "mt-4 max-w-4xl text-4xl font-semibold tracking-tight md:text-5xl"}>
+            {headerTitle}
           </h1>
 
-          <p className="mt-4 max-w-3xl text-base leading-8 text-slate-300">
-            Share your project details and unlock a preliminary pricing range the moment
-            you submit.
+          <p className={isEmbedMode ? "mt-3 max-w-2xl text-sm leading-7 text-slate-300 sm:text-base" : "mt-4 max-w-3xl text-base leading-8 text-slate-300"}>
+            {headerDescription}
           </p>
 
           <p className="mt-4 text-sm font-medium text-amber-200/90">
             Pricing for {selectedContractor.name}
           </p>
 
-          <div className="mt-6 flex flex-wrap items-center gap-2.5 md:gap-3 text-xs text-slate-300">
-            <span className="inline-flex rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5">
-              No obligation
-            </span>
-            <span className="inline-flex rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5">
-              Saved to contractor dashboard
-            </span>
-            <span className="inline-flex rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5">
-              Usually reviewed within 1 business day
-            </span>
-          </div>
+          {!isEmbedMode ? (
+            <div className="mt-6 flex flex-wrap items-center gap-2.5 text-xs text-slate-300 md:gap-3">
+              <span className="inline-flex rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5">
+                No obligation
+              </span>
+              <span className="inline-flex rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5">
+                Saved to contractor dashboard
+              </span>
+              <span className="inline-flex rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5">
+                Usually reviewed within 1 business day
+              </span>
+            </div>
+          ) : null}
         </header>
 
-        <section className="glass-panel rounded-[32px] p-6 shadow-[0_20px_80px_rgba(0,0,0,0.35)] md:p-8">
-          <div className="grid gap-8 lg:grid-cols-[1.2fr_0.8fr]">
+        <section className={sectionClassName}>
+          <div className={contentGridClassName}>
             <form onSubmit={handleSubmit}>
               <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
-                  Project Details
-                </p>
-                <h2 className="mt-3 text-2xl font-semibold tracking-tight md:text-3xl">
-                  Tell us about your project
+                {!isEmbedMode ? (
+                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
+                    Project Details
+                  </p>
+                ) : null}
+                <h2 className={isEmbedMode ? "text-xl font-semibold tracking-tight sm:text-2xl" : "mt-3 text-2xl font-semibold tracking-tight md:text-3xl"}>
+                  {formIntroTitle}
                 </h2>
-                <p className="mt-3 max-w-2xl text-sm leading-7 text-slate-300 md:text-base">
-                  Fill out all fields below to generate your estimate and submit your request.
+                <p className={isEmbedMode ? "mt-2 max-w-2xl text-sm leading-6 text-slate-300" : "mt-3 max-w-2xl text-sm leading-7 text-slate-300 md:text-base"}>
+                  {formIntroDescription}
                 </p>
               </div>
 
-              <div className="mt-8 grid gap-5 md:grid-cols-2">
+              <div className={isEmbedMode ? "mt-6 grid gap-4 md:grid-cols-2" : "mt-8 grid gap-5 md:grid-cols-2"}>
                 <div className="md:col-span-2">
                   <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-slate-300">Full Name</label>
                   <input
@@ -601,7 +658,7 @@ export default function QuotePage() {
                   <button
                     type="button"
                     onClick={() => setShowMap((prev) => !prev)}
-                    className="inline-flex items-center justify-center rounded-2xl border border-white/10 bg-white/[0.05] px-4 py-3 text-sm font-medium text-white transition hover:bg-white/[0.08]"
+                    className="inline-flex w-full items-center justify-center rounded-2xl border border-white/10 bg-white/[0.05] px-4 py-3 text-sm font-medium text-white transition hover:bg-white/[0.08] sm:w-auto"
                   >
                     {showMap ? "Hide Map" : "Measure Fence on Map"}
                   </button>
@@ -609,7 +666,7 @@ export default function QuotePage() {
 
                 {showMap && (
                   <div className="md:col-span-2">
-                  <div className="rounded-3xl border border-white/10 bg-white/[0.03] p-4">
+                    <div className="rounded-3xl border border-white/10 bg-white/[0.03] p-3 sm:p-4">
                       <FenceDrawMap
                         address={fullAddress}
                         searchTrigger={searchTrigger}
@@ -617,7 +674,7 @@ export default function QuotePage() {
                           setLinearFeet(feet);
                         }}
                       />
-                  </div>
+                    </div>
                   </div>
                 )}
 
@@ -729,7 +786,7 @@ export default function QuotePage() {
                 </div>
               ) : null}
 
-              <div className="sticky bottom-3 mt-8 rounded-2xl border border-white/10 bg-slate-950/65 p-3 backdrop-blur md:static md:border-0 md:bg-transparent md:p-0">
+              <div className={stickySubmitClassName}>
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
                   <button
                     type="submit"
@@ -750,10 +807,10 @@ export default function QuotePage() {
               </div>
             </form>
 
-            <aside className="space-y-5">
-              <div className="rounded-3xl border border-white/10 bg-white/[0.03] p-6">
+            <aside className={isEmbedMode ? "space-y-4" : "space-y-5"}>
+              <div className={isEmbedMode ? "rounded-3xl border border-white/10 bg-white/[0.03] p-4 sm:p-5" : "rounded-3xl border border-white/10 bg-white/[0.03] p-6"}>
                 <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
-                  Current Inputs
+                  {isEmbedMode ? "Live Summary" : "Current Inputs"}
                 </p>
                 <div className="mt-4 space-y-2 text-sm text-slate-300">
                   <p>Type: <span className="font-medium text-white">{formatFenceType(fenceType)}</span></p>
@@ -765,17 +822,27 @@ export default function QuotePage() {
                 </div>
               </div>
 
-
-              <div className="rounded-3xl border border-white/10 bg-white/[0.03] p-6">
-                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
-                  What Happens Next
-                </p>
-                <ol className="mt-3 list-decimal space-y-2 pl-5 text-sm leading-6 text-slate-300">
-                  <li>Your request is saved to the contractor dashboard.</li>
-                  <li>A contractor reviews scope and site details.</li>
-                  <li>You receive final follow-up for verified pricing.</li>
-                </ol>
-              </div>
+              {!isEmbedMode ? (
+                <div className="rounded-3xl border border-white/10 bg-white/[0.03] p-6">
+                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
+                    What Happens Next
+                  </p>
+                  <ol className="mt-3 list-decimal space-y-2 pl-5 text-sm leading-6 text-slate-300">
+                    <li>Your request is saved to the contractor dashboard.</li>
+                    <li>A contractor reviews scope and site details.</li>
+                    <li>You receive final follow-up for verified pricing.</li>
+                  </ol>
+                </div>
+              ) : (
+                <div className="rounded-3xl border border-amber-300/20 bg-gradient-to-br from-amber-300/12 via-white/[0.03] to-transparent p-4 sm:p-5">
+                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-amber-100/80">
+                    Embed Mode
+                  </p>
+                  <p className="mt-3 text-sm leading-6 text-slate-300">
+                    This widget is trimmed for embedded use and will post height updates to the host page as the map, validation, and estimate states expand or collapse.
+                  </p>
+                </div>
+              )}
             </aside>
           </div>
         </section>

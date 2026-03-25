@@ -31,6 +31,24 @@ export default function FenceDrawMap({ address, searchTrigger, onDistanceChange 
     onDistanceChangeRef.current = onDistanceChange;
   }, [onDistanceChange]);
 
+  useEffect(() => {
+    const container = containerRef.current;
+
+    if (!container || typeof ResizeObserver === "undefined") {
+      return;
+    }
+
+    const resizeObserver = new ResizeObserver(() => {
+      mapRef.current?.resize();
+    });
+
+    resizeObserver.observe(container);
+
+    return () => {
+      resizeObserver.disconnect();
+    };
+  }, []);
+
   const clearParcelBoundary = (map: mapboxgl.Map | null) => {
     if (!map) return;
 
@@ -458,33 +476,33 @@ export default function FenceDrawMap({ address, searchTrigger, onDistanceChange 
       <div className="text-xs text-slate-400">Geocode: {geocodeDebug || "none"}</div>
       <div className="text-sm font-medium text-emerald-300">Total: {totalFeet} ft</div>
 
-      <div className="flex items-center gap-2">
+      <div className="flex flex-wrap items-center gap-2">
         <button
           type="button"
           onClick={useParcelBoundary}
           disabled={isParcelLoading}
-          className="inline-flex items-center justify-center rounded-xl border border-emerald-400/30 bg-emerald-500/15 px-3 py-2 text-xs font-medium text-emerald-300 transition hover:bg-emerald-500/25 disabled:cursor-not-allowed disabled:opacity-50"
+          className="inline-flex min-h-10 w-full items-center justify-center rounded-xl border border-emerald-400/30 bg-emerald-500/15 px-3 py-2 text-xs font-medium text-emerald-300 transition hover:bg-emerald-500/25 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
         >
           {isParcelLoading ? "Loading Parcel..." : "Use Parcel Boundary"}
         </button>
         <button
           type="button"
           onClick={undoLastPoint}
-          className="inline-flex items-center justify-center rounded-xl border border-white/10 bg-white/[0.05] px-3 py-2 text-xs font-medium text-white transition hover:bg-white/[0.08]"
+          className="inline-flex min-h-10 w-full items-center justify-center rounded-xl border border-white/10 bg-white/[0.05] px-3 py-2 text-xs font-medium text-white transition hover:bg-white/[0.08] sm:w-auto"
         >
           Undo Point
         </button>
         <button
           type="button"
           onClick={clearDrawing}
-          className="inline-flex items-center justify-center rounded-xl border border-white/10 bg-white/[0.05] px-3 py-2 text-xs font-medium text-white transition hover:bg-white/[0.08]"
+          className="inline-flex min-h-10 w-full items-center justify-center rounded-xl border border-white/10 bg-white/[0.05] px-3 py-2 text-xs font-medium text-white transition hover:bg-white/[0.08] sm:w-auto"
         >
           Clear Fence
         </button>
         <button
           type="button"
           onClick={() => setKeepParcelOverlay((prev) => !prev)}
-          className="inline-flex items-center justify-center rounded-xl border border-white/10 bg-white/[0.05] px-3 py-2 text-xs font-medium text-white transition hover:bg-white/[0.08]"
+          className="inline-flex min-h-10 w-full items-center justify-center rounded-xl border border-white/10 bg-white/[0.05] px-3 py-2 text-xs font-medium text-white transition hover:bg-white/[0.08] sm:w-auto"
         >
           {keepParcelOverlay ? "Parcel Overlay: Keep" : "Parcel Overlay: Auto-clear"}
         </button>
@@ -506,7 +524,7 @@ export default function FenceDrawMap({ address, searchTrigger, onDistanceChange 
         <div
           id="fence-map-container"
           ref={containerRef}
-          style={{ width: "100%", height: "650px" }}
+          style={{ width: "100%", height: "clamp(320px, 55vh, 650px)" }}
         />
       </div>
     </div>

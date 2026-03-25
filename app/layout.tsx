@@ -1,6 +1,7 @@
 import "./globals.css";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { Manrope, Space_Grotesk } from "next/font/google";
+import IframeHostSync from "../components/iframe-host-sync";
 
 const displayFont = Space_Grotesk({
   subsets: ["latin"],
@@ -24,7 +25,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={`${displayFont.variable} ${bodyFont.variable}`}>{children}</body>
+      <body className={`${displayFont.variable} ${bodyFont.variable}`}>
+        <IframeHostSync />
+        {children}
+      </body>
     </html>
   );
 }

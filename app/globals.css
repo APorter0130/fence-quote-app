@@ -25,6 +25,10 @@ body {
     linear-gradient(180deg,#0b1220 0%,#0f172a 100%);
 }
 
+body[data-embedded="true"] {
+  min-height: auto;
+}
+
 ::selection {
   background: rgba(251,191,36,0.25);
 }

@@ -9,12 +9,21 @@ export default function HomePage() {
           Get an instant preliminary fence estimate for your fencing project.
         </p>
 
-        <Link
-          href="/quote"
-          className="mt-6 inline-block rounded-xl bg-black px-5 py-3 text-white"
-        >
-          Start Quote
-        </Link>
+        <div className="mt-6 flex flex-wrap items-center gap-3">
+          <Link
+            href="/quote"
+            className="inline-block rounded-xl bg-black px-5 py-3 text-white"
+          >
+            Start Quote
+          </Link>
+
+          <Link
+            href="/embed-preview"
+            className="inline-block rounded-xl border border-white/15 bg-white/[0.05] px-5 py-3 text-white"
+          >
+            Preview Embed
+          </Link>
+        </div>
       </div>
     </main>
   );
