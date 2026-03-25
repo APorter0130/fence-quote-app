@@ -20,6 +20,7 @@ export default function FenceDrawMap({ address, searchTrigger, onDistanceChange 
   const pointMarkersRef = useRef<mapboxgl.Marker[]>([]);
   const [debug, setDebug] = useState("idle");
   const [geocodeDebug, setGeocodeDebug] = useState("");
+  const isDev = process.env.NODE_ENV !== "production";
   const [totalFeet, setTotalFeet] = useState(0);
   const [isParcelLoading, setIsParcelLoading] = useState(false);
   const [keepParcelOverlay, setKeepParcelOverlay] = useState(true);
@@ -177,7 +178,7 @@ export default function FenceDrawMap({ address, searchTrigger, onDistanceChange 
     const point = lastGeocodedPointRef.current;
     if (!point) {
       setDebug("find address first");
-      setParcelMessage("Find Address first, then use parcel boundary.");
+      setParcelMessage("Find Address first, then use property lines.");
       setParcelMessageIsError(true);
       return;
     }
@@ -193,7 +194,7 @@ export default function FenceDrawMap({ address, searchTrigger, onDistanceChange 
       console.log("parcel lookup lat/lon", { lat, lon, address });
       const radii = [25, 50, 100, 250, 500];
       let found = false;
-      let lastError = "No parcel boundary found for this location.";
+      let lastError = "No property lines found for this location.";
 
       for (const radius of radii) {
         const res = await fetch(`/api/parcel-boundary?lat=${lat}&lon=${lon}&radius=${radius}`, {
@@ -216,7 +217,7 @@ export default function FenceDrawMap({ address, searchTrigger, onDistanceChange 
         if (res.ok && payload.parcel) {
           drawParcelBoundary(payload.parcel);
           setDebug("parcel loaded");
-          setParcelMessage(`Parcel boundary loaded (radius ${radius}m).`);
+          setParcelMessage(`Property lines loaded (radius ${radius}m).`);
           setParcelMessageIsError(false);
           found = true;
           break;
@@ -231,16 +232,16 @@ export default function FenceDrawMap({ address, searchTrigger, onDistanceChange 
 
       if (!found) {
         const noParcelMessage =
-          "Parcel data is unavailable for this address from Regrid. You can still trace your fence manually on the map.";
+          "Property line data is unavailable for this address, but you can still trace your fence manually on the map.";
         const isNoParcel = /no parcel found/i.test(lastError);
 
-        setDebug(isNoParcel ? "parcel data unavailable" : lastError);
+        setDebug(isNoParcel ? "property line data unavailable" : lastError);
         setParcelMessage(isNoParcel ? noParcelMessage : lastError);
         setParcelMessageIsError(true);
       }
     } catch {
-      setDebug("parcel lookup failed");
-      setParcelMessage("Parcel lookup failed. Please try again.");
+      setDebug("property line lookup failed");
+      setParcelMessage("Property line lookup failed. Please try again.");
       setParcelMessageIsError(true);
     } finally {
       setIsParcelLoading(false);
@@ -472,8 +473,7 @@ export default function FenceDrawMap({ address, searchTrigger, onDistanceChange 
 
   return (
     <div className="space-y-2">
-      <div className="text-xs text-slate-400">Debug: {debug}</div>
-      <div className="text-xs text-slate-400">Geocode: {geocodeDebug || "none"}</div>
+
       <div className="text-sm font-medium text-emerald-300">Total: {totalFeet} ft</div>
 
       <div className="flex flex-wrap items-center gap-2">
@@ -483,7 +483,7 @@ export default function FenceDrawMap({ address, searchTrigger, onDistanceChange 
           disabled={isParcelLoading}
           className="inline-flex min-h-10 w-full items-center justify-center rounded-xl border border-emerald-400/30 bg-emerald-500/15 px-3 py-2 text-xs font-medium text-emerald-300 transition hover:bg-emerald-500/25 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
         >
-          {isParcelLoading ? "Loading Parcel..." : "Use Parcel Boundary"}
+          {isParcelLoading ? "Loading..." : "Show Property Lines"}
         </button>
         <button
           type="button"
@@ -504,7 +504,7 @@ export default function FenceDrawMap({ address, searchTrigger, onDistanceChange 
           onClick={() => setKeepParcelOverlay((prev) => !prev)}
           className="inline-flex min-h-10 w-full items-center justify-center rounded-xl border border-white/10 bg-white/[0.05] px-3 py-2 text-xs font-medium text-white transition hover:bg-white/[0.08] sm:w-auto"
         >
-          {keepParcelOverlay ? "Parcel Overlay: Keep" : "Parcel Overlay: Auto-clear"}
+          {keepParcelOverlay ? "Property Lines: On" : "Property Lines: Off"}
         </button>
       </div>
 
@@ -524,7 +524,7 @@ export default function FenceDrawMap({ address, searchTrigger, onDistanceChange 
         <div
           id="fence-map-container"
           ref={containerRef}
-          style={{ width: "100%", height: "clamp(320px, 55vh, 650px)" }}
+          style={{ width: "100%", height: "clamp(280px, 42vh, 500px)" }}
         />
       </div>
     </div>

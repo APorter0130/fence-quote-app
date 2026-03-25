@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 :root {
-  --background: #0b1220;
+  --background: #0c0c0d;
   --foreground: #e5e7eb;
   --panel: rgba(255, 255, 255, 0.05);
   --panel-border: rgba(255, 255, 255, 0.12);
@@ -14,19 +14,40 @@
   --font-mono: var(--font-geist-mono);
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 body {
   background: var(--background);
   color: white;
   font-family: var(--font-body), "Segoe UI", sans-serif;
   min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
   background-image:
-    radial-gradient(circle at 20% 0%, rgba(251,191,36,0.08), transparent 35%),
-    radial-gradient(circle at 80% 10%, rgba(16,185,129,0.06), transparent 40%),
-    linear-gradient(180deg,#0b1220 0%,#0f172a 100%);
+    radial-gradient(circle at 20% 0%, rgba(251,191,36,0.10), transparent 35%),
+    linear-gradient(180deg,#0c0c0d 0%,#111114 100%);
 }
 
 body[data-embedded="true"] {
   min-height: auto;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #111114;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(251,191,36,0.25);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(251,191,36,0.45);
 }
 
 ::selection {
@@ -46,10 +67,40 @@ button {
   -webkit-tap-highlight-color: transparent;
 }
 
+/* Autofill — override browser's white/yellow injection on dark inputs */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+select:-webkit-autofill,
+textarea:-webkit-autofill {
+  -webkit-box-shadow: 0 0 0 1000px #111114 inset;
+  -webkit-text-fill-color: #e5e7eb;
+  caret-color: #e5e7eb;
+  transition: background-color 9999s ease-in-out 0s;
+}
+
+/* Focus ring — amber instead of browser blue */
+:focus-visible {
+  outline: 2px solid rgba(251,191,36,0.6);
+  outline-offset: 2px;
+}
+
 .glass-panel {
   border: 1px solid rgba(255,255,255,0.1);
   background: rgba(255,255,255,0.04);
   backdrop-filter: blur(20px);
+}
+
+.glass-panel-hover {
+  border: 1px solid rgba(255,255,255,0.1);
+  background: rgba(255,255,255,0.04);
+  backdrop-filter: blur(20px);
+  transition: border-color .2s ease, background .2s ease;
+}
+.glass-panel-hover:hover,
+.glass-panel-hover:focus-within {
+  border-color: rgba(255,255,255,0.18);
+  background: rgba(255,255,255,0.07);
 }
 
 .fade-in-up {
@@ -67,4 +118,21 @@ button {
 
 button:hover {
   transform: translateY(-1px);
+}
+
+button:disabled:hover,
+button[disabled]:hover {
+  transform: none;
+}
+
+/* Respect reduced-motion preference */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

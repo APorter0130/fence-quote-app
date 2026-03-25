@@ -213,6 +213,8 @@ export default function QuotePage() {
 
     if (!customerPhone.trim()) {
       nextErrors.customerPhone = "Please enter your phone number.";
+    } else if (customerPhone.replace(/\D/g, "").length < 10) {
+      nextErrors.customerPhone = "Please enter a complete 10-digit phone number.";
     }
 
     if (!streetAddress.trim()) {
@@ -264,7 +266,15 @@ export default function QuotePage() {
   }
 
   function selectClass() {
-    return "w-full rounded-2xl border border-white/10 bg-white/[0.05] px-4 py-3.5 text-[15px] text-white outline-none transition duration-200 focus:border-amber-400/70 focus:ring-4 focus:ring-amber-400/10";
+    return "w-full cursor-pointer rounded-2xl border border-white/10 bg-white/[0.05] px-4 py-3.5 text-[15px] text-white outline-none transition duration-200 hover:bg-white/[0.08] focus:border-amber-400/70 focus:ring-4 focus:ring-amber-400/10";
+  }
+
+  function formatPhoneNumber(raw: string): string {
+    const digits = raw.replace(/\D/g, "").slice(0, 10);
+    if (digits.length === 0) return "";
+    if (digits.length <= 3) return `(${digits}`;
+    if (digits.length <= 6) return `(${digits.slice(0, 3)}) ${digits.slice(3)}`;
+    return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
   }
 
   function formatFenceType(value: FenceType) {
@@ -451,7 +461,7 @@ export default function QuotePage() {
                 </p>
                 <p className="mt-4">
                   <span className={isEmbedMode ? "inline-flex rounded-2xl border border-amber-200/20 bg-amber-200/10 px-3 py-2 text-2xl font-extrabold leading-tight tracking-tight text-white drop-shadow-[0_8px_24px_rgba(245,158,11,0.32)] sm:text-3xl" : "inline-flex rounded-2xl border border-amber-200/20 bg-amber-200/10 px-4 py-2 text-4xl font-extrabold tracking-tight leading-none text-white drop-shadow-[0_8px_24px_rgba(245,158,11,0.32)] md:text-6xl"}>
-                    ${estimate.lowEstimate.toLocaleString()} - ${estimate.highEstimate.toLocaleString()}
+                    ${estimate.lowEstimate.toLocaleString()} &ndash; ${estimate.highEstimate.toLocaleString()}
                   </span>
                 </p>
                 <p className={isEmbedMode ? "mt-3 max-w-2xl text-sm leading-6 text-slate-300" : "mt-4 max-w-2xl text-sm leading-7 text-slate-300"}>
@@ -465,7 +475,7 @@ export default function QuotePage() {
               <div className={isEmbedMode ? "mt-5 flex flex-col items-start gap-3 sm:flex-row sm:items-center" : "mt-8 flex flex-wrap items-center gap-3"}>
                 <button
                   onClick={() => setSubmitted(false)}
-                  className="inline-flex items-center justify-center rounded-2xl bg-white px-5 py-3 text-sm font-semibold text-slate-950 transition hover:opacity-90"
+                  className="inline-flex items-center justify-center rounded-2xl border border-white/20 bg-white/[0.06] px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/[0.10]"
                 >
                   Edit Submission
                 </button>
@@ -500,19 +510,7 @@ export default function QuotePage() {
             Pricing for {selectedContractor.name}
           </p>
 
-          {!isEmbedMode ? (
-            <div className="mt-6 flex flex-wrap items-center gap-2.5 text-xs text-slate-300 md:gap-3">
-              <span className="inline-flex rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5">
-                No obligation
-              </span>
-              <span className="inline-flex rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5">
-                Saved to contractor dashboard
-              </span>
-              <span className="inline-flex rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5">
-                Usually reviewed within 1 business day
-              </span>
-            </div>
-          ) : null}
+
         </header>
 
         <section className={sectionClassName}>
@@ -568,7 +566,7 @@ export default function QuotePage() {
                     type="tel"
                     value={customerPhone}
                     onChange={(e) => {
-                      setCustomerPhone(e.target.value);
+                      setCustomerPhone(formatPhoneNumber(e.target.value));
                       clearFieldError("customerPhone");
                     }}
                     className={inputClass("customerPhone", customerPhone.trim().length > 0)}
@@ -579,7 +577,7 @@ export default function QuotePage() {
 
                 <div className="grid gap-4 md:col-span-2 md:grid-cols-2">
                   <div className="md:col-span-2">
-                    <label className="mb-2 block text-sm font-medium text-white">
+                    <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-slate-300">
                       Street Address
                     </label>
                     <input
@@ -596,7 +594,7 @@ export default function QuotePage() {
                   </div>
 
                   <div>
-                    <label className="mb-2 block text-sm font-medium text-white">City</label>
+                    <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-slate-300">City</label>
                     <input
                       type="text"
                       value={city}
@@ -611,7 +609,7 @@ export default function QuotePage() {
                   </div>
 
                   <div>
-                    <label className="mb-2 block text-sm font-medium text-white">State</label>
+                    <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-slate-300">State</label>
                     <input
                       type="text"
                       value={state}
@@ -627,7 +625,7 @@ export default function QuotePage() {
                   </div>
 
                   <div>
-                    <label className="mb-2 block text-sm font-medium text-white">ZIP Code</label>
+                    <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-slate-300">ZIP Code</label>
                     <input
                       type="text"
                       value={zip}
@@ -641,26 +639,23 @@ export default function QuotePage() {
                     />
                     {fieldErrors.zip ? <p className="mt-2 text-xs text-rose-300">{fieldErrors.zip}</p> : null}
                   </div>
-
-                  <div className="flex items-end">
-                    <button
-                      type="button"
-                      disabled={!canSearch}
-                      onClick={() => setSearchTrigger((prev) => prev + 1)}
-                      className="w-full rounded-2xl border border-white/10 bg-white/[0.05] px-4 py-3 text-sm font-medium text-white transition hover:bg-white/[0.08] disabled:cursor-not-allowed disabled:opacity-50"
-                    >
-                      Find Address
-                    </button>
-                  </div>
                 </div>
 
-                <div className="md:col-span-2">
+                <div className="md:col-span-2 mt-4 flex gap-6">
+                  <button
+                    type="button"
+                    disabled={!canSearch}
+                    onClick={() => setSearchTrigger((prev) => prev + 1)}
+                    className="flex-1 rounded-2xl border border-white/10 bg-white/[0.05] px-4 py-3 text-sm font-medium text-white transition hover:bg-white/[0.08] disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    Find Address
+                  </button>
                   <button
                     type="button"
                     onClick={() => setShowMap((prev) => !prev)}
-                    className="inline-flex w-full items-center justify-center rounded-2xl border border-white/10 bg-white/[0.05] px-4 py-3 text-sm font-medium text-white transition hover:bg-white/[0.08] sm:w-auto"
+                    className="flex-1 rounded-2xl border border-white/10 bg-white/[0.05] px-4 py-3 text-sm font-medium text-white transition hover:bg-white/[0.08]"
                   >
-                    {showMap ? "Hide Map" : "Measure Fence on Map"}
+                    {showMap ? "Hide Map" : "Open Map"}
                   </button>
                 </div>
 
@@ -678,6 +673,11 @@ export default function QuotePage() {
                   </div>
                 )}
 
+                <div className="md:col-span-2 pb-1 pt-3">
+                  <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">Fence Specifications</p>
+                  <div className="mt-2 h-px bg-white/[0.06]" />
+                </div>
+
                 <div>
                   <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-slate-300">Fence Type</label>
                   <select
@@ -689,7 +689,7 @@ export default function QuotePage() {
                       <option
                         key={type}
                         value={type}
-                        className="bg-slate-900"
+                        className="bg-[#111114]"
                         disabled={!availableFenceTypes.has(type)}
                       >
                         {formatFenceType(type)}
@@ -709,7 +709,7 @@ export default function QuotePage() {
                       <option
                         key={height}
                         value={height}
-                        className="bg-slate-900"
+                        className="bg-[#111114]"
                         disabled={!availableHeightsForFenceType.has(height)}
                       >
                         {height} ft
@@ -726,7 +726,7 @@ export default function QuotePage() {
                     className={selectClass()}
                   >
                     {YARD_GRADES.map((grade) => (
-                      <option key={grade} value={grade} className="bg-slate-900">
+                      <option key={grade} value={grade} className="bg-[#111114]">
                         {grade === "moderate" ? "Moderate Slope" : formatYardGrade(grade)}
                       </option>
                     ))}
@@ -762,7 +762,7 @@ export default function QuotePage() {
                 </div>
 
                 <div className="md:col-span-2">
-                  <label className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.05] px-4 py-4 text-sm text-slate-200">
+                  <label className="flex cursor-pointer items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.05] px-4 py-4 text-sm text-slate-200 transition duration-200 hover:border-amber-400/25 hover:bg-amber-400/[0.05]">
                     <input
                       type="checkbox"
                       checked={tearOut}
@@ -791,8 +791,14 @@ export default function QuotePage() {
                   <button
                     type="submit"
                     disabled={isSubmitting || isPricingLoading || !estimate || estimate.unavailable}
-                    className="inline-flex items-center justify-center rounded-2xl bg-white px-6 py-3.5 text-sm font-semibold text-slate-950 transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+                    className="inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-amber-400 to-amber-500 px-6 py-3.5 text-sm font-semibold text-slate-900 shadow-[0_4px_20px_rgba(245,158,11,0.28)] transition active:scale-[0.98] hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
                   >
+                    {isSubmitting && (
+                      <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V4a10 10 0 00-10 10h4z" />
+                      </svg>
+                    )}
                     {isSubmitting
                       ? "Submitting..."
                       : isPricingLoading

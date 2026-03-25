@@ -23,6 +23,13 @@ export default function HomePage() {
           >
             Preview Embed
           </Link>
+
+          <Link
+            href="/onboard"
+            className="inline-block rounded-xl border border-white/15 bg-white/[0.05] px-5 py-3 text-white"
+          >
+            Contractor Signup
+          </Link>
         </div>
       </div>
     </main>

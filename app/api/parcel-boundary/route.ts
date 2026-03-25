@@ -36,7 +36,7 @@ async function fetchRegridPoint(
 
   const text = await response.text();
   console.log("Regrid status:", response.status);
-  console.log("Regrid raw text:", text);
+  console.log("Regrid raw response:", text.slice(0, 500));
 
   if (!response.ok) {
     return {
@@ -92,6 +92,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ parcel: regridFeature, source: "regrid" });
     }
 
+    // Return raw Regrid payload in non-production so we can diagnose shape mismatches
     return NextResponse.json(
       {
         error: "No parcel found",
