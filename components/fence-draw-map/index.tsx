@@ -506,7 +506,7 @@ export default function FenceDrawMap({ address, searchTrigger, onDistanceChange 
         <div
           id="fence-map-container"
           ref={containerRef}
-          style={{ width: "100%", height: "650px" }}
+          style={{ width: "100%", height: "min(650px, 60vw + 200px)" }}
         />
       </div>
     </div>

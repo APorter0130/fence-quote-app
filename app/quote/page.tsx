@@ -443,7 +443,7 @@ export default function QuotePage() {
   if (submitted && estimate) {
     const ac = selectedContractor.accentColor;
     return (
-      <main className="min-h-screen px-4 py-12 text-white">
+      <main className="min-h-screen px-3 py-10 sm:px-4 sm:py-12 text-white">
         <div className="mx-auto max-w-3xl fade-in-up">
 
           {/* Header */}
@@ -452,7 +452,7 @@ export default function QuotePage() {
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
               Estimate Ready
             </div>
-            <h1 className="mt-5 text-4xl font-semibold tracking-tight md:text-5xl">
+            <h1 className="mt-5 text-3xl font-semibold tracking-tight sm:text-4xl md:text-5xl">
               Your range is unlocked
             </h1>
             <p className="mt-3 text-base text-slate-400">
@@ -481,14 +481,14 @@ export default function QuotePage() {
 
             <div className="relative mt-6 flex items-end justify-center gap-4 md:gap-8">
               <div className="text-center">
-                <p className="text-4xl font-extrabold tracking-tight text-white md:text-6xl" style={{ textShadow: `0 4px 24px ${hexToRgba(ac, 0.35)}` }}>
+                <p className="text-3xl font-extrabold tracking-tight text-white sm:text-4xl md:text-6xl" style={{ textShadow: `0 4px 24px ${hexToRgba(ac, 0.35)}` }}>
                   ${estimate.lowEstimate.toLocaleString()}
                 </p>
                 <p className="mt-1.5 text-[10px] font-bold uppercase tracking-widest text-slate-500">Low</p>
               </div>
               <div className="mb-6 h-px w-10 md:w-16" style={{ backgroundColor: hexToRgba(ac, 0.50) }} />
               <div className="text-center">
-                <p className="text-4xl font-extrabold tracking-tight text-white md:text-6xl" style={{ textShadow: `0 4px 24px ${hexToRgba(ac, 0.35)}` }}>
+                <p className="text-3xl font-extrabold tracking-tight text-white sm:text-4xl md:text-6xl" style={{ textShadow: `0 4px 24px ${hexToRgba(ac, 0.35)}` }}>
                   ${estimate.highEstimate.toLocaleString()}
                 </p>
                 <p className="mt-1.5 text-[10px] font-bold uppercase tracking-widest text-slate-500">High</p>
@@ -601,7 +601,7 @@ export default function QuotePage() {
   }
 
   return (
-    <main className="min-h-screen px-4 py-12 text-white">
+    <main className="min-h-screen px-3 py-10 sm:px-4 sm:py-12 text-white">
       <div className="mx-auto max-w-2xl fade-in-up">
         <header className="mb-10 text-center">
           <div
@@ -614,7 +614,7 @@ export default function QuotePage() {
           >
             {selectedContractor.name}
           </div>
-          <h1 className="mt-5 text-4xl font-semibold tracking-tight md:text-5xl">
+          <h1 className="mt-5 text-3xl font-semibold tracking-tight sm:text-4xl md:text-5xl">
             Get Your Fence Estimate
           </h1>
           <p className="mt-4 text-base leading-7 text-slate-400">
@@ -627,7 +627,7 @@ export default function QuotePage() {
           </div>
         </header>
 
-        <section className="glass-panel rounded-[32px] p-6 shadow-[0_20px_80px_rgba(0,0,0,0.35)] md:p-8">
+        <section className="glass-panel rounded-[24px] p-4 shadow-[0_20px_80px_rgba(0,0,0,0.35)] sm:rounded-[32px] sm:p-6 md:p-8">
             <form onSubmit={handleSubmit}>
               <div className="flex items-center gap-3">
                 <span className="font-mono text-xs font-bold tracking-[0.2em]" style={{ color: hexToRgba(selectedContractor.accentColor, 0.70) }}>01</span>
@@ -805,7 +805,7 @@ export default function QuotePage() {
 
                 <div className="md:col-span-2">
                   <label className="mb-3 block text-xs font-semibold uppercase tracking-[0.16em] text-slate-300">Fence Type</label>
-                  <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                  <div className="grid grid-cols-4 gap-2 sm:gap-3">
                     {FENCE_TYPES.map((type) => {
                       const Icon = FENCE_ICONS[type];
                       const isSelected = fenceType === type;
@@ -817,7 +817,7 @@ export default function QuotePage() {
                           disabled={!isAvailable}
                           onClick={() => setFenceType(type as FenceType)}
                           className={[
-                            "flex flex-col items-center gap-2 rounded-2xl border px-3 py-4 text-center transition-all duration-200",
+                            "flex flex-col items-center gap-1.5 rounded-xl border px-2 py-3 text-center transition-all duration-200 sm:gap-2 sm:rounded-2xl sm:px-3 sm:py-4",
                             isSelected
                               ? "text-white"
                               : isAvailable
@@ -830,9 +830,9 @@ export default function QuotePage() {
                             boxShadow: `0 0 18px ${hexToRgba(selectedContractor.accentColor, 0.12)}`,
                           } : undefined}
                         >
-                          <Icon className="h-7 w-7" style={isSelected ? { color: selectedContractor.accentColor } : undefined} />
-                          <span className="text-sm font-semibold">{FENCE_TYPE_META[type].label}</span>
-                          <span className="text-[11px] opacity-60">{FENCE_TYPE_META[type].desc}</span>
+                          <Icon className="h-6 w-6 sm:h-7 sm:w-7" style={isSelected ? { color: selectedContractor.accentColor } : undefined} />
+                          <span className="text-xs font-semibold sm:text-sm">{FENCE_TYPE_META[type].label}</span>
+                          <span className="hidden text-[11px] opacity-60 sm:block">{FENCE_TYPE_META[type].desc}</span>
                         </button>
                       );
                     })}
@@ -852,7 +852,7 @@ export default function QuotePage() {
                           disabled={!isAvailable}
                           onClick={() => setFenceHeight(height as FenceHeight)}
                           className={[
-                            "flex-1 rounded-xl py-2.5 text-sm font-semibold transition-all duration-200",
+                            "flex-1 min-w-0 rounded-xl py-2.5 text-xs font-semibold transition-all duration-200 sm:text-sm",
                             isSelected
                               ? "text-slate-950 shadow-sm"
                               : isAvailable
@@ -882,7 +882,7 @@ export default function QuotePage() {
                           type="button"
                           onClick={() => setYardGrade(grade)}
                           className={[
-                            "flex flex-col items-center gap-1.5 rounded-2xl border px-3 py-4 text-center transition-all duration-200",
+                            "flex flex-col items-center gap-1 rounded-xl border px-2 py-3 text-center transition-all duration-200 sm:gap-1.5 sm:rounded-2xl sm:px-3 sm:py-4",
                             isSelected
                               ? "text-white"
                               : "border-white/10 bg-white/[0.04] text-slate-400 hover:border-white/20 hover:bg-white/[0.07] hover:text-white",
