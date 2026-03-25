@@ -1,6 +1,26 @@
+"use client";
+import { useEffect } from "react";
 import Link from "next/link";
 
+function useScrollReveal() {
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("is-visible");
+          }
+        });
+      },
+      { threshold: 0.08, rootMargin: "0px 0px -40px 0px" }
+    );
+    document.querySelectorAll(".scroll-reveal").forEach((el) => observer.observe(el));
+    return () => observer.disconnect();
+  }, []);
+}
+
 export default function HomePage() {
+  useScrollReveal();
   return (
     <div className="min-h-screen bg-[#030303] text-white antialiased">
 
@@ -72,7 +92,9 @@ export default function HomePage() {
           <h1 className="font-display text-6xl font-black leading-[1.02] tracking-[-0.04em] text-white md:text-7xl lg:text-8xl">
             Your website.
             <br />
-            <span className="text-amber-400">Your leads.</span>
+            <span className="bg-gradient-to-r from-amber-300 via-yellow-200 to-amber-400 bg-clip-text text-transparent">
+              Your leads.
+            </span>
             <br />
             On autopilot.
           </h1>
@@ -224,8 +246,8 @@ export default function HomePage() {
               { value: "Zero code", label: "Required from you" },
               { value: "24 / 7", label: "Automated lead capture" },
               { value: "Any site", label: "Platform compatible" },
-            ].map(({ value, label }) => (
-              <div key={label} className="text-center">
+            ].map(({ value, label }, i) => (
+              <div key={label} className="scroll-reveal text-center" style={{ transitionDelay: `${i * 80}ms` }}>
                 <div className="font-display text-3xl font-black tracking-tight text-white">
                   {value}
                 </div>
@@ -239,7 +261,7 @@ export default function HomePage() {
       {/* ── How it works ───────────────────────────────────────── */}
       <section className="px-6 py-32">
         <div className="mx-auto max-w-5xl">
-          <div className="mb-20 text-center">
+          <div className="scroll-reveal mb-20 text-center">
             <p className="mb-4 text-xs font-semibold uppercase tracking-widest text-amber-400">
               How it works
             </p>
@@ -299,10 +321,11 @@ export default function HomePage() {
                   </svg>
                 ),
               },
-            ].map(({ step, title, body, icon }) => (
+            ].map(({ step, title, body, icon }, i) => (
               <div
                 key={step}
-                className="group relative overflow-hidden rounded-3xl border border-white/[0.07] bg-white/[0.02] p-8 transition-all hover:border-white/[0.13] hover:bg-white/[0.04]"
+                className="scroll-reveal group relative overflow-hidden rounded-3xl border border-white/[0.07] bg-white/[0.02] p-8 transition-all hover:border-white/[0.13] hover:bg-white/[0.04]"
+                style={{ transitionDelay: `${i * 100}ms` }}
               >
                 {/* Watermark step number */}
                 <div className="pointer-events-none absolute -right-1 -top-2 select-none font-display text-[7rem] font-black leading-none text-white/[0.025]">
@@ -329,14 +352,16 @@ export default function HomePage() {
       {/* ── Features ───────────────────────────────────────────── */}
       <section className="px-6 py-32">
         <div className="mx-auto max-w-5xl">
-          <div className="mb-20 text-center">
+          <div className="scroll-reveal mb-20 text-center">
             <p className="mb-4 text-xs font-semibold uppercase tracking-widest text-amber-400">
               Features
             </p>
             <h2 className="font-display text-5xl font-black tracking-[-0.03em] text-white">
               Everything you need.
               <br />
-              <span className="text-white/35">Nothing you don&apos;t.</span>
+              <span className="bg-gradient-to-r from-white/40 to-white/20 bg-clip-text text-transparent">
+                Nothing you don&apos;t.
+              </span>
             </h2>
           </div>
 
@@ -469,10 +494,11 @@ export default function HomePage() {
                   </svg>
                 ),
               },
-            ].map(({ icon, title, body }) => (
+            ].map(({ icon, title, body }, i) => (
               <div
                 key={title}
-                className="group rounded-3xl border border-white/[0.06] bg-white/[0.02] p-7 transition-all hover:border-amber-400/20 hover:bg-amber-400/[0.025]"
+                className="scroll-reveal group rounded-3xl border border-white/[0.06] bg-white/[0.02] p-7 transition-all hover:border-amber-400/20 hover:bg-amber-400/[0.025]"
+                style={{ transitionDelay: `${i * 75}ms` }}
               >
                 <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl border border-white/[0.07] bg-white/[0.04] text-white/60 transition-all group-hover:border-amber-400/25 group-hover:bg-amber-400/[0.08] group-hover:text-amber-400">
                   {icon}
@@ -488,7 +514,7 @@ export default function HomePage() {
       {/* ── Code snippet ───────────────────────────────────────── */}
       <section className="px-6 py-32">
         <div className="mx-auto max-w-4xl">
-          <div className="overflow-hidden rounded-3xl border border-white/[0.07] bg-[#080809]">
+          <div className="scroll-reveal overflow-hidden rounded-3xl border border-white/[0.07] bg-[#080809]">
             <div className="grid md:grid-cols-[1fr_1.5fr]">
               {/* Text side */}
               <div className="flex flex-col justify-center p-10 md:p-12">
@@ -547,7 +573,7 @@ export default function HomePage() {
       {/* ── Final CTA ──────────────────────────────────────────── */}
       <section className="px-6 py-32">
         <div className="mx-auto max-w-3xl">
-          <div className="relative overflow-hidden rounded-3xl border border-amber-400/20 bg-[#0d0a00] px-10 py-24 text-center">
+          <div className="scroll-reveal relative overflow-hidden rounded-3xl border border-amber-400/20 bg-[#0d0a00] px-10 py-24 text-center">
             {/* Glow */}
             <div className="pointer-events-none absolute inset-0">
               <div className="absolute left-1/2 top-1/2 h-[500px] w-[500px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-amber-500/[0.12] blur-[100px]" />
@@ -559,7 +585,9 @@ export default function HomePage() {
               <h2 className="font-display text-5xl font-black tracking-[-0.03em] text-white md:text-6xl">
                 Start capturing
                 <br />
-                <span className="text-amber-400">leads today.</span>
+                <span className="bg-gradient-to-r from-amber-300 via-yellow-200 to-amber-400 bg-clip-text text-transparent">
+                  leads today.
+                </span>
               </h2>
               <p className="mx-auto mt-6 max-w-sm text-lg text-white/40">
                 Set up your quote tool in under 10 minutes. No credit card
