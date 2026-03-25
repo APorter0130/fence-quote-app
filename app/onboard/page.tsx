@@ -68,7 +68,7 @@ export default function OnboardPage() {
           setSlugMessage("Available!");
         } else {
           setSlugState("taken");
-          setSlugMessage("Already taken — try another.");
+          setSlugMessage("Already taken - try another.");
         }
       } catch {
         setSlugState("idle");
@@ -90,7 +90,7 @@ export default function OnboardPage() {
   }
 
   function inputClass(hasValue: boolean) {
-    return `w-full rounded-2xl border ${hasValue ? "border-emerald-300/45 bg-white/[0.06]" : "border-white/10 bg-white/[0.05]"} px-4 py-3.5 text-[15px] text-white placeholder:text-slate-400 outline-none transition duration-200 focus:border-amber-400/70 focus:ring-4 focus:ring-amber-400/10`;
+    return `w-full rounded-2xl border ${hasValue ? "border-emerald-300/45 bg-white" : "border-black/10 bg-white"} px-4 py-3.5 text-[15px] text-slate-900 placeholder:text-slate-500 outline-none transition duration-200 focus:border-amber-400/70 focus:ring-4 focus:ring-amber-400/10`;
   }
 
   const slugBorderClass =
@@ -99,10 +99,10 @@ export default function OnboardPage() {
       : slugState === "taken" || slugState === "invalid"
         ? "border-rose-400/65"
         : slug.length >= 3
-          ? "border-white/10"
-          : "border-white/10";
+          ? "border-black/10"
+          : "border-black/10";
 
-  const slugInputClass = `w-full rounded-2xl border ${slugBorderClass} bg-white/[0.05] px-4 py-3.5 text-[15px] text-white placeholder:text-slate-400 outline-none transition duration-200 focus:border-amber-400/70 focus:ring-4 focus:ring-amber-400/10`;
+  const slugInputClass = `w-full rounded-2xl border ${slugBorderClass} bg-white px-4 py-3.5 text-[15px] text-slate-900 placeholder:text-slate-500 outline-none transition duration-200 focus:border-amber-400/70 focus:ring-4 focus:ring-amber-400/10`;
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -138,19 +138,19 @@ export default function OnboardPage() {
   }
 
   return (
-    <main className="min-h-screen px-4 py-12 text-white">
+    <main className="min-h-screen px-4 py-12 text-slate-900">
       <div className="mx-auto max-w-lg fade-in-up">
         <div className="mb-8">
           <Link
             href="/"
-            className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400 transition hover:text-white"
+            className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500 transition hover:text-slate-900"
           >
-            ← Back
+            <- Back
           </Link>
           <h1 className="mt-6 text-4xl font-semibold tracking-tight">
             Set up your contractor account
           </h1>
-          <p className="mt-3 text-base leading-7 text-slate-300">
+          <p className="mt-3 text-base leading-7 text-slate-700">
             Create your account in under a minute. You&apos;ll set up your pricing on the next
             screen.
           </p>
@@ -159,7 +159,7 @@ export default function OnboardPage() {
         <section className="glass-panel rounded-[32px] p-6 shadow-[0_20px_80px_rgba(0,0,0,0.35)] md:p-8">
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-slate-300">
+              <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-slate-700">
                 Company Name
               </label>
               <input
@@ -172,7 +172,7 @@ export default function OnboardPage() {
             </div>
 
             <div>
-              <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-slate-300">
+              <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-slate-700">
                 Email
               </label>
               <input
@@ -186,7 +186,7 @@ export default function OnboardPage() {
             </div>
 
             <div>
-              <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-slate-300">
+              <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-slate-700">
                 Phone
               </label>
               <input
@@ -200,7 +200,7 @@ export default function OnboardPage() {
             </div>
 
             <div>
-              <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-slate-300">
+              <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-slate-700">
                 Your Quote URL Slug
               </label>
               <div className="relative">
@@ -216,7 +216,7 @@ export default function OnboardPage() {
                 />
                 {slugState === "checking" && (
                   <span className="absolute right-4 top-1/2 -translate-y-1/2">
-                    <svg className="h-4 w-4 animate-spin text-slate-400" viewBox="0 0 24 24" fill="none">
+                    <svg className="h-4 w-4 animate-spin text-slate-500" viewBox="0 0 24 24" fill="none">
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V4a10 10 0 00-10 10h4z" />
                     </svg>
@@ -235,8 +235,8 @@ export default function OnboardPage() {
               {slug && (
                 <p className="mt-2 text-xs text-slate-500">
                   Your embed URL will be:{" "}
-                  <span className="text-slate-300">
-                    /quote?contractor=<span className="text-white">{slug}</span>
+                  <span className="text-slate-700">
+                    /quote?contractor=<span className="text-slate-900">{slug}</span>
                   </span>
                 </p>
               )}
@@ -259,7 +259,7 @@ export default function OnboardPage() {
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V4a10 10 0 00-10 10h4z" />
                 </svg>
               )}
-              {isSubmitting ? "Creating account…" : "Continue to Pricing Setup →"}
+              {isSubmitting ? "Creating account..." : "Continue to Pricing Setup ->"}
             </button>
           </form>
         </section>
@@ -267,3 +267,5 @@ export default function OnboardPage() {
     </main>
   );
 }
+
+

@@ -1,10 +1,10 @@
 @import "tailwindcss";
 
 :root {
-  --background: #0c0c0d;
-  --foreground: #e5e7eb;
-  --panel: rgba(255, 255, 255, 0.05);
-  --panel-border: rgba(255, 255, 255, 0.12);
+  --background: #f8f8f8;
+  --foreground: #111111;
+  --panel: rgba(255, 255, 255, 0.9);
+  --panel-border: rgba(0, 0, 0, 0.12);
 }
 
 @theme inline {
@@ -21,14 +21,14 @@ html {
 
 body {
   background: var(--background);
-  color: white;
+  color: var(--foreground);
   font-family: var(--font-body), "Segoe UI", sans-serif;
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   background-image:
-    radial-gradient(circle at 20% 0%, rgba(251,191,36,0.10), transparent 35%),
-    linear-gradient(180deg,#0c0c0d 0%,#111114 100%);
+    radial-gradient(circle at 20% 0%, rgba(251, 191, 36, 0.08), transparent 35%),
+    linear-gradient(180deg, #ffffff 0%, #f4f4f5 100%);
 }
 
 body[data-embedded="true"] {
@@ -41,14 +41,14 @@ body[data-embedded="true"] {
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #111114;
+  background: #e4e4e7;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(251,191,36,0.25);
+  background: rgba(161, 161, 170, 0.8);
   border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(251,191,36,0.45);
+  background: rgba(113, 113, 122, 0.85);
 }
 
 ::selection {
@@ -68,40 +68,40 @@ button {
   -webkit-tap-highlight-color: transparent;
 }
 
-/* Autofill — override browser's white/yellow injection on dark inputs */
+/* Autofill: override browser white/yellow injection on inputs */
 input:-webkit-autofill,
 input:-webkit-autofill:hover,
 input:-webkit-autofill:focus,
 select:-webkit-autofill,
 textarea:-webkit-autofill {
-  -webkit-box-shadow: 0 0 0 1000px #111114 inset;
-  -webkit-text-fill-color: #e5e7eb;
-  caret-color: #e5e7eb;
+  -webkit-box-shadow: 0 0 0 1000px #ffffff inset;
+  -webkit-text-fill-color: #111111;
+  caret-color: #111111;
   transition: background-color 9999s ease-in-out 0s;
 }
 
-/* Focus ring — amber instead of browser blue */
+/* Focus ring: amber instead of browser blue */
 :focus-visible {
   outline: 2px solid rgba(251,191,36,0.6);
   outline-offset: 2px;
 }
 
 .glass-panel {
-  border: 1px solid rgba(255,255,255,0.1);
-  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  background: rgba(255, 255, 255, 0.92);
   backdrop-filter: blur(20px);
 }
 
 .glass-panel-hover {
-  border: 1px solid rgba(255,255,255,0.1);
-  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  background: rgba(255, 255, 255, 0.92);
   backdrop-filter: blur(20px);
   transition: border-color .2s ease, background .2s ease;
 }
 .glass-panel-hover:hover,
 .glass-panel-hover:focus-within {
-  border-color: rgba(255,255,255,0.18);
-  background: rgba(255,255,255,0.07);
+  border-color: rgba(0, 0, 0, 0.18);
+  background: #ffffff;
 }
 
 .fade-in-up {

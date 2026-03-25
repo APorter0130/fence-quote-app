@@ -487,21 +487,21 @@ export default function FenceDrawMap({ address, searchTrigger, onDistanceChange 
         <button
           type="button"
           onClick={undoLastPoint}
-          className="inline-flex min-h-10 w-full items-center justify-center rounded-xl border border-white/10 bg-white/[0.05] px-3 py-2 text-xs font-medium text-white transition hover:bg-white/[0.08] sm:w-auto"
+          className="inline-flex min-h-10 w-full items-center justify-center rounded-xl border border-black/10 bg-white px-3 py-2 text-xs font-medium text-slate-900 transition hover:bg-slate-100 sm:w-auto"
         >
           Undo Point
         </button>
         <button
           type="button"
           onClick={clearDrawing}
-          className="inline-flex min-h-10 w-full items-center justify-center rounded-xl border border-white/10 bg-white/[0.05] px-3 py-2 text-xs font-medium text-white transition hover:bg-white/[0.08] sm:w-auto"
+          className="inline-flex min-h-10 w-full items-center justify-center rounded-xl border border-black/10 bg-white px-3 py-2 text-xs font-medium text-slate-900 transition hover:bg-slate-100 sm:w-auto"
         >
           Clear Fence
         </button>
         <button
           type="button"
           onClick={() => setKeepParcelOverlay((prev) => !prev)}
-          className="inline-flex min-h-10 w-full items-center justify-center rounded-xl border border-white/10 bg-white/[0.05] px-3 py-2 text-xs font-medium text-white transition hover:bg-white/[0.08] sm:w-auto"
+          className="inline-flex min-h-10 w-full items-center justify-center rounded-xl border border-black/10 bg-white px-3 py-2 text-xs font-medium text-slate-900 transition hover:bg-slate-100 sm:w-auto"
         >
           {keepParcelOverlay ? "Property Lines: On" : "Property Lines: Off"}
         </button>
@@ -519,7 +519,7 @@ export default function FenceDrawMap({ address, searchTrigger, onDistanceChange 
         </div>
       ) : null}
 
-      <div className="w-full rounded-2xl border border-white/10 overflow-hidden">
+      <div className="w-full rounded-2xl border border-black/10 overflow-hidden">
         <div
           id="fence-map-container"
           ref={containerRef}
@@ -529,3 +529,5 @@ export default function FenceDrawMap({ address, searchTrigger, onDistanceChange 
     </div>
   );
 }
+
+

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { Resend } from "resend";
 import { supabase } from "../../../../lib/supabase";
 import { FENCE_TYPES, FENCE_HEIGHTS } from "../../../../types/quote";
 import type { FenceType, FenceHeight } from "../../../../types/quote";
@@ -80,6 +81,69 @@ type PricingRowInput = {
   is_active: boolean;
 };
 
+type PricingChangeMetadata = {
+  source?: "manual" | "csv-import";
+  file_name?: string;
+};
+
+type ExistingPricingRow = PricingRowInput & {
+  contractor_id: string;
+};
+
+function buildPricingAuditEmail(params: {
+  contractorSlug: string;
+  rowsSaved: number;
+  source: string;
+  fileName: string;
+  changedAtIso: string;
+  logId: string;
+  insertedRows: number;
+  updatedRows: number;
+  unchangedRows: number;
+}) {
+  const {
+    contractorSlug,
+    rowsSaved,
+    source,
+    fileName,
+    changedAtIso,
+    logId,
+    insertedRows,
+    updatedRows,
+    unchangedRows,
+  } = params;
+
+  return `
+  <div style="font-family:Segoe UI,Arial,sans-serif;max-width:560px;margin:0 auto;padding:20px;color:#111827">
+    <h2 style="margin:0 0 14px 0;font-size:20px">Pricing Change Audit</h2>
+    <table style="border-collapse:collapse;width:100%">
+      <tr><td style="padding:6px 0;color:#6b7280">Contractor</td><td style="padding:6px 0">${contractorSlug}</td></tr>
+      <tr><td style="padding:6px 0;color:#6b7280">Rows Saved</td><td style="padding:6px 0">${rowsSaved}</td></tr>
+      <tr><td style="padding:6px 0;color:#6b7280">Source</td><td style="padding:6px 0">${source}</td></tr>
+      <tr><td style="padding:6px 0;color:#6b7280">File</td><td style="padding:6px 0">${fileName}</td></tr>
+      <tr><td style="padding:6px 0;color:#6b7280">Changed At</td><td style="padding:6px 0">${changedAtIso}</td></tr>
+      <tr><td style="padding:6px 0;color:#6b7280">Log ID</td><td style="padding:6px 0">${logId}</td></tr>
+      <tr><td style="padding:6px 0;color:#6b7280">Inserted Rows</td><td style="padding:6px 0">${insertedRows}</td></tr>
+      <tr><td style="padding:6px 0;color:#6b7280">Updated Rows</td><td style="padding:6px 0">${updatedRows}</td></tr>
+      <tr><td style="padding:6px 0;color:#6b7280">Unchanged Rows</td><td style="padding:6px 0">${unchangedRows}</td></tr>
+    </table>
+  </div>`;
+}
+
+function hasPricingDiff(prev: ExistingPricingRow, next: PricingRowInput) {
+  return (
+    Number(prev.price_per_foot) !== Number(next.price_per_foot) ||
+    Number(prev.grade_multiplier_flat) !== Number(next.grade_multiplier_flat) ||
+    Number(prev.grade_multiplier_moderate) !== Number(next.grade_multiplier_moderate) ||
+    Number(prev.grade_multiplier_steep) !== Number(next.grade_multiplier_steep) ||
+    Number(prev.gate_price) !== Number(next.gate_price) ||
+    Number(prev.tear_out_fee) !== Number(next.tear_out_fee) ||
+    Number(prev.minimum_job_price) !== Number(next.minimum_job_price) ||
+    Number(prev.estimate_high_multiplier) !== Number(next.estimate_high_multiplier) ||
+    prev.is_active !== next.is_active
+  );
+}
+
 export async function POST(req: NextRequest) {
   const token = req.nextUrl.searchParams.get("token") ?? "";
   const contractor = await resolveContractorByToken(token);
@@ -107,6 +171,11 @@ export async function POST(req: NextRequest) {
       { status: 400 }
     );
   }
+
+  const metadata =
+    body && typeof body === "object" && !Array.isArray(body)
+      ? (((body as { metadata?: unknown }).metadata ?? {}) as PricingChangeMetadata)
+      : {};
 
   const validFenceTypes = new Set<string>(FENCE_TYPES);
   const validFenceHeights = new Set<string>(FENCE_HEIGHTS);
@@ -165,6 +234,39 @@ export async function POST(req: NextRequest) {
     });
   }
 
+  const { data: existingRowsRaw } = await supabase
+    .from("contractor_pricing")
+    .select(
+      "contractor_id,fence_type,fence_height,price_per_foot,grade_multiplier_flat,grade_multiplier_moderate,grade_multiplier_steep,gate_price,tear_out_fee,minimum_job_price,estimate_high_multiplier,is_active"
+    )
+    .eq("contractor_id", contractor.id);
+
+  const existingRows = (existingRowsRaw ?? []) as ExistingPricingRow[];
+  const existingByKey = new Map<string, ExistingPricingRow>();
+  for (const row of existingRows) {
+    existingByKey.set(`${row.fence_type}__${row.fence_height}`, row);
+  }
+
+  let insertedRows = 0;
+  let updatedRows = 0;
+  let unchangedRows = 0;
+
+  for (const nextRow of rows) {
+    const key = `${nextRow.fence_type}__${nextRow.fence_height}`;
+    const previous = existingByKey.get(key);
+
+    if (!previous) {
+      insertedRows += 1;
+      continue;
+    }
+
+    if (hasPricingDiff(previous, nextRow)) {
+      updatedRows += 1;
+    } else {
+      unchangedRows += 1;
+    }
+  }
+
   const upsertPayload = rows.map((row) => ({
     ...row,
     contractor_id: contractor.id,
@@ -220,6 +322,64 @@ export async function POST(req: NextRequest) {
         );
       }
     }
+  }
+
+  const auditEmail = process.env.PRICING_AUDIT_EMAIL?.trim();
+  const resendKey = process.env.RESEND_API_KEY?.trim();
+  const changedAtIso = new Date().toISOString();
+  let pricingChangeLogId = "n/a";
+
+  const { data: pricingLogRow, error: pricingLogError } = await supabase
+    .from("pricing_change_log")
+    .insert({
+      contractor_id: contractor.id,
+      source: metadata.source ?? "manual",
+      file_name: metadata.file_name ?? null,
+      rows_saved: rows.length,
+      inserted_rows: insertedRows,
+      updated_rows: updatedRows,
+      unchanged_rows: unchangedRows,
+      changed_at: changedAtIso,
+      change_summary: {
+        total_rows_submitted: rows.length,
+        inserted_rows: insertedRows,
+        updated_rows: updatedRows,
+        unchanged_rows: unchangedRows,
+      },
+      metadata: metadata,
+    })
+    .select("id")
+    .maybeSingle<{ id: string }>();
+
+  if (pricingLogError) {
+    console.error("Pricing change log insert skipped:", pricingLogError.message);
+  } else if (pricingLogRow?.id) {
+    pricingChangeLogId = pricingLogRow.id;
+  }
+
+  if (auditEmail && resendKey) {
+    const resend = new Resend(resendKey);
+
+    void resend.emails
+      .send({
+        from: process.env.RESEND_FROM_EMAIL ?? "quotes@fenceestimate.app",
+        to: auditEmail,
+        subject: `Pricing updated: ${contractor.slug}`,
+        html: buildPricingAuditEmail({
+          contractorSlug: contractor.slug,
+          rowsSaved: rows.length,
+          source: metadata.source ?? "manual",
+          fileName: metadata.file_name ?? "n/a",
+          changedAtIso,
+          logId: pricingChangeLogId,
+          insertedRows,
+          updatedRows,
+          unchangedRows,
+        }),
+      })
+      .catch((error) => {
+        console.error("Pricing audit email failed:", error);
+      });
   }
 
   return NextResponse.json({ ok: true, saved: rows.length });

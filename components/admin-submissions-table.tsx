@@ -128,13 +128,13 @@ export default function AdminSubmissionsTable({
   }
 
   function statusSelectClass() {
-    return "w-full rounded-xl border border-white/15 bg-white/[0.06] px-3 py-2 text-sm text-white outline-none transition focus:border-amber-300/65";
+    return "w-full rounded-xl border border-black/15 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-amber-300/65";
   }
 
   function notesTextareaClass(compact = false) {
     return compact
-      ? "min-h-[110px] w-full rounded-xl border border-white/15 bg-white/[0.06] p-3 text-sm text-white outline-none transition focus:border-amber-300/65"
-      : "min-h-[90px] w-56 rounded-xl border border-white/15 bg-white/[0.06] p-2 text-sm text-white outline-none transition focus:border-amber-300/65";
+      ? "min-h-[110px] w-full rounded-xl border border-black/15 bg-white p-3 text-sm text-slate-900 outline-none transition focus:border-amber-300/65"
+      : "min-h-[90px] w-56 rounded-xl border border-black/15 bg-white p-2 text-sm text-slate-900 outline-none transition focus:border-amber-300/65";
   }
 
   return (
@@ -153,48 +153,48 @@ export default function AdminSubmissionsTable({
           >
             <div className="flex items-start justify-between gap-3">
               <div>
-                <p className="text-lg font-semibold text-white">{getSubmissionName(submission)}</p>
-                <p className="mt-1 text-xs uppercase tracking-[0.14em] text-slate-400">
+                <p className="text-lg font-semibold text-slate-900">{getSubmissionName(submission)}</p>
+                <p className="mt-1 text-xs uppercase tracking-[0.14em] text-slate-500">
                   {submission.contractor_name ?? submission.contractor_id}
                 </p>
               </div>
-              <div className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-slate-300">
+              <div className="rounded-full border border-black/10 bg-white px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-slate-700">
                 {submission.status ?? "new"}
               </div>
             </div>
 
             <div className="mt-4 grid gap-3 sm:grid-cols-2">
-              <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-3">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-400">Contact</p>
-                <p className="mt-2 text-sm text-slate-200">{getSubmissionPhone(submission)}</p>
-                <p className="mt-1 break-all text-sm text-slate-300">{getSubmissionEmail(submission)}</p>
+              <div className="rounded-2xl border border-black/10 bg-slate-50 p-3">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">Contact</p>
+                <p className="mt-2 text-sm text-slate-700">{getSubmissionPhone(submission)}</p>
+                <p className="mt-1 break-all text-sm text-slate-700">{getSubmissionEmail(submission)}</p>
               </div>
 
-              <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-3">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-400">Address</p>
-                <p className="mt-2 text-sm text-slate-200">{submission.street_address || "-"}</p>
-                <p className="mt-1 text-sm text-slate-300">
+              <div className="rounded-2xl border border-black/10 bg-slate-50 p-3">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">Address</p>
+                <p className="mt-2 text-sm text-slate-700">{submission.street_address || "-"}</p>
+                <p className="mt-1 text-sm text-slate-700">
                   {[submission.city, submission.state, submission.zip].filter(Boolean).join(", ") || "-"}
                 </p>
               </div>
 
-              <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-3">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-400">Project</p>
-                <p className="mt-2 text-sm text-slate-200">{submission.fence_type} / {submission.fence_height} ft</p>
-                <p className="mt-1 text-sm text-slate-300">{submission.linear_feet} ft, {submission.gates} gate(s)</p>
-                <p className="mt-1 text-sm text-slate-300">{submission.yard_grade}, {submission.tear_out ? "tear-out" : "no tear-out"}</p>
+              <div className="rounded-2xl border border-black/10 bg-slate-50 p-3">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">Project</p>
+                <p className="mt-2 text-sm text-slate-700">{submission.fence_type} / {submission.fence_height} ft</p>
+                <p className="mt-1 text-sm text-slate-700">{submission.linear_feet} ft, {submission.gates} gate(s)</p>
+                <p className="mt-1 text-sm text-slate-700">{submission.yard_grade}, {submission.tear_out ? "tear-out" : "no tear-out"}</p>
               </div>
 
               <div className="rounded-2xl border border-amber-300/20 bg-gradient-to-br from-amber-300/12 via-white/[0.03] to-transparent p-3">
                 <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-amber-100/80">Estimate</p>
-                <p className="mt-2 text-lg font-semibold text-white">{formatEstimate(submission)}</p>
-                <p className="mt-1 text-sm text-slate-400">Submitted {formatSubmissionDate(submission.created_at)}</p>
+                <p className="mt-2 text-lg font-semibold text-slate-900">{formatEstimate(submission)}</p>
+                <p className="mt-1 text-sm text-slate-500">Submitted {formatSubmissionDate(submission.created_at)}</p>
               </div>
             </div>
 
             <div className="mt-4 grid gap-4 sm:grid-cols-2">
               <div>
-                <label className="mb-2 block text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-400">
+                <label className="mb-2 block text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">
                   Status
                 </label>
                 <select
@@ -204,19 +204,19 @@ export default function AdminSubmissionsTable({
                   className={statusSelectClass()}
                 >
                   {statusOptions.map((status) => (
-                    <option key={status} value={status} className="bg-slate-900 text-white">
+                    <option key={status} value={status} className="bg-white text-slate-900">
                       {status}
                     </option>
                   ))}
                 </select>
 
                 {savingId === submission.id ? (
-                  <div className="mt-2 text-xs text-slate-400">Saving...</div>
+                  <div className="mt-2 text-xs text-slate-500">Saving...</div>
                 ) : null}
               </div>
 
               <div>
-                <label className="mb-2 block text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-400">
+                <label className="mb-2 block text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">
                   Internal Notes
                 </label>
                 <textarea
@@ -227,7 +227,7 @@ export default function AdminSubmissionsTable({
                 />
 
                 {notesSavingId === submission.id ? (
-                  <div className="mt-2 text-xs text-slate-400">Saving notes...</div>
+                  <div className="mt-2 text-xs text-slate-500">Saving notes...</div>
                 ) : null}
               </div>
             </div>
@@ -238,8 +238,8 @@ export default function AdminSubmissionsTable({
       <div className="hidden lg:block">
         <div className="glass-panel overflow-x-auto rounded-[32px] shadow-[0_20px_80px_rgba(0,0,0,0.35)]">
           <table className="min-w-full border-collapse">
-            <thead className="bg-white/[0.03]">
-              <tr className="text-left text-xs font-semibold uppercase tracking-[0.14em] text-slate-300">
+            <thead className="bg-slate-50">
+              <tr className="text-left text-xs font-semibold uppercase tracking-[0.14em] text-slate-700">
                 <th className="p-4">Name</th>
                 <th className="p-4">Phone</th>
                 <th className="p-4">Email</th>
@@ -259,39 +259,39 @@ export default function AdminSubmissionsTable({
               {submissions.map((submission) => (
                 <tr
                   key={submission.id}
-                  className="border-t border-white/10 align-top text-sm text-slate-200 transition hover:bg-white/[0.025]"
+                  className="border-t border-black/10 align-top text-sm text-slate-700 transition hover:bg-white/[0.025]"
                 >
                   <td className="p-4">
                     <div className="font-semibold">{getSubmissionName(submission)}</div>
-                    <div className="mt-2 text-xs text-slate-400">
+                    <div className="mt-2 text-xs text-slate-500">
                       {submission.contractor_name ?? submission.contractor_id}
                     </div>
                   </td>
 
-                  <td className="p-4 text-slate-300">
+                  <td className="p-4 text-slate-700">
                     {getSubmissionPhone(submission)}
                   </td>
 
-                  <td className="p-4 text-slate-300">
+                  <td className="p-4 text-slate-700">
                     {getSubmissionEmail(submission)}
                   </td>
 
-                  <td className="p-4 text-slate-300">{submission.street_address || "-"}</td>
+                  <td className="p-4 text-slate-700">{submission.street_address || "-"}</td>
 
-                  <td className="p-4 text-slate-300">{submission.city || "-"}</td>
+                  <td className="p-4 text-slate-700">{submission.city || "-"}</td>
 
-                  <td className="p-4 text-slate-300">{submission.state || "-"}</td>
+                  <td className="p-4 text-slate-700">{submission.state || "-"}</td>
 
-                  <td className="p-4 text-slate-300">{submission.zip || "-"}</td>
+                  <td className="p-4 text-slate-700">{submission.zip || "-"}</td>
 
-                  <td className="p-4 text-slate-300">
+                  <td className="p-4 text-slate-700">
                     <div>{submission.fence_type}</div>
-                    <div className="text-slate-400">
+                    <div className="text-slate-500">
                       {submission.fence_height} ft
                     </div>
                   </td>
 
-                  <td className="p-4 text-slate-300">
+                  <td className="p-4 text-slate-700">
                     <div>{submission.linear_feet} ft</div>
                     <div>{submission.gates} gate(s)</div>
                     <div>{submission.yard_grade}</div>
@@ -312,14 +312,14 @@ export default function AdminSubmissionsTable({
                       className={statusSelectClass()}
                     >
                       {statusOptions.map((status) => (
-                        <option key={status} value={status} className="bg-slate-900 text-white">
+                        <option key={status} value={status} className="bg-white text-slate-900">
                           {status}
                         </option>
                       ))}
                     </select>
 
                     {savingId === submission.id ? (
-                      <div className="mt-2 text-xs text-slate-400">Saving...</div>
+                      <div className="mt-2 text-xs text-slate-500">Saving...</div>
                     ) : null}
                   </td>
 
@@ -332,11 +332,11 @@ export default function AdminSubmissionsTable({
                     />
 
                     {notesSavingId === submission.id ? (
-                      <div className="mt-2 text-xs text-slate-400">Saving notes...</div>
+                      <div className="mt-2 text-xs text-slate-500">Saving notes...</div>
                     ) : null}
                   </td>
 
-                  <td className="p-4 text-slate-400">
+                  <td className="p-4 text-slate-500">
                     {formatSubmissionDate(submission.created_at)}
                   </td>
                 </tr>
@@ -348,3 +348,5 @@ export default function AdminSubmissionsTable({
     </div>
   );
 }
+
+

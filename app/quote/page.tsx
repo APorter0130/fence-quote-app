@@ -90,8 +90,8 @@ function QuotePageContent() {
   const isEmbedMode = isEmbedded || isEmbedRoute || isEmbedQueryMode;
 
   const pageMainClassName = isEmbedMode
-    ? "px-3 py-4 text-white sm:px-4 sm:py-6"
-    : "min-h-screen px-4 py-10 text-white";
+    ? "px-3 py-4 text-slate-900 sm:px-4 sm:py-6"
+    : "min-h-screen px-4 py-10 text-slate-900";
 
   const pageShellClassName = isEmbedMode ? "mx-auto max-w-4xl fade-in-up" : "mx-auto max-w-6xl fade-in-up";
 
@@ -104,8 +104,8 @@ function QuotePageContent() {
     : "grid gap-8 lg:grid-cols-[1.2fr_0.8fr]";
 
   const stickySubmitClassName = isEmbedMode
-    ? "mt-8 rounded-2xl border border-white/10 bg-slate-950/65 p-3 backdrop-blur"
-    : "sticky bottom-3 mt-8 rounded-2xl border border-white/10 bg-slate-950/65 p-3 backdrop-blur md:static md:border-0 md:bg-transparent md:p-0";
+    ? "mt-8 rounded-2xl border border-black/10 bg-white p-3 backdrop-blur"
+    : "sticky bottom-3 mt-8 rounded-2xl border border-black/10 bg-white p-3 backdrop-blur md:static md:border-0 md:bg-transparent md:p-0";
 
   const headerClassName = isEmbedMode ? "mb-5" : "mb-8";
   const headerEyebrow = isEmbedMode ? "Fence Estimate" : "Instant Fence Estimator";
@@ -122,8 +122,8 @@ function QuotePageContent() {
     ? "glass-panel overflow-hidden rounded-[28px] shadow-[0_20px_80px_rgba(0,0,0,0.35)]"
     : "glass-panel overflow-hidden rounded-[32px] shadow-[0_20px_80px_rgba(0,0,0,0.35)]";
   const statusHeaderClassName = isEmbedMode
-    ? "border-b border-white/10 px-4 py-4 sm:px-6 sm:py-5"
-    : "border-b border-white/10 px-6 py-6 md:px-10";
+    ? "border-b border-black/10 px-4 py-4 sm:px-6 sm:py-5"
+    : "border-b border-black/10 px-6 py-6 md:px-10";
   const statusBodyClassName = isEmbedMode ? "px-4 py-5 sm:px-6 sm:py-6" : "px-6 py-8 md:px-10";
 
   useEffect(() => {
@@ -329,18 +329,18 @@ function QuotePageContent() {
 
   function inputClass(field: FieldKey, hasValue: boolean) {
     if (fieldErrors[field]) {
-      return "w-full rounded-2xl border border-rose-400/65 bg-white/[0.06] px-4 py-3.5 text-[15px] text-white placeholder:text-slate-400 outline-none transition duration-200 focus:border-rose-300 focus:ring-4 focus:ring-rose-400/10";
+      return "w-full rounded-2xl border border-rose-400/65 bg-white px-4 py-3.5 text-[15px] text-slate-900 placeholder:text-slate-500 outline-none transition duration-200 focus:border-rose-300 focus:ring-4 focus:ring-rose-400/10";
     }
 
     if (hasValue) {
-      return "w-full rounded-2xl border border-emerald-300/45 bg-white/[0.06] px-4 py-3.5 text-[15px] text-white placeholder:text-slate-400 outline-none transition duration-200 focus:border-amber-300 focus:ring-4 focus:ring-amber-400/10";
+      return "w-full rounded-2xl border border-emerald-300/45 bg-white px-4 py-3.5 text-[15px] text-slate-900 placeholder:text-slate-500 outline-none transition duration-200 focus:border-amber-300 focus:ring-4 focus:ring-amber-400/10";
     }
 
-    return "w-full rounded-2xl border border-white/10 bg-white/[0.05] px-4 py-3.5 text-[15px] text-white placeholder:text-slate-400 outline-none transition duration-200 focus:border-amber-400/70 focus:ring-4 focus:ring-amber-400/10";
+    return "w-full rounded-2xl border border-black/10 bg-white px-4 py-3.5 text-[15px] text-slate-900 placeholder:text-slate-500 outline-none transition duration-200 focus:border-amber-400/70 focus:ring-4 focus:ring-amber-400/10";
   }
 
   function selectClass() {
-    return "w-full cursor-pointer rounded-2xl border border-white/10 bg-white/[0.05] px-4 py-3.5 text-[15px] text-white outline-none transition duration-200 hover:bg-white/[0.08] focus:border-amber-400/70 focus:ring-4 focus:ring-amber-400/10";
+    return "w-full cursor-pointer rounded-2xl border border-black/10 bg-white px-4 py-3.5 text-[15px] text-slate-900 outline-none transition duration-200 hover:bg-slate-100 focus:border-amber-400/70 focus:ring-4 focus:ring-amber-400/10";
   }
 
   function formatPhoneNumber(raw: string): string {
@@ -464,7 +464,7 @@ function QuotePageContent() {
               <h1 className={isEmbedMode ? "mt-3 text-2xl font-semibold tracking-tight sm:text-3xl" : "mt-4 text-3xl font-semibold tracking-tight md:text-4xl"}>
                 Loading contractor configuration
               </h1>
-              <p className={isEmbedMode ? "mt-2 max-w-2xl text-sm leading-6 text-slate-300" : "mt-3 max-w-2xl text-sm leading-7 text-slate-300 md:text-base"}>
+              <p className={isEmbedMode ? "mt-2 max-w-2xl text-sm leading-6 text-slate-700" : "mt-3 max-w-2xl text-sm leading-7 text-slate-700 md:text-base"}>
                 {isEmbedMode
                   ? "Resolving the contractor tied to this embedded quote form."
                   : "This quote form is resolving the contractor tied to your embed link."}
@@ -488,14 +488,14 @@ function QuotePageContent() {
               <h1 className={isEmbedMode ? "mt-3 text-2xl font-semibold tracking-tight sm:text-3xl" : "mt-4 text-3xl font-semibold tracking-tight md:text-4xl"}>
                 This contractor link could not be resolved
               </h1>
-              <p className={isEmbedMode ? "mt-2 max-w-2xl text-sm leading-6 text-slate-300" : "mt-3 max-w-2xl text-sm leading-7 text-slate-300 md:text-base"}>
+              <p className={isEmbedMode ? "mt-2 max-w-2xl text-sm leading-6 text-slate-700" : "mt-3 max-w-2xl text-sm leading-7 text-slate-700 md:text-base"}>
                 Use a valid contractor identifier in the quote URL, for example
-                <span className="font-medium text-white"> ?contractor=aj-fence</span>
+                <span className="font-medium text-slate-900"> ?contractor=aj-fence</span>
                 or the contractor UUID.
               </p>
             </div>
 
-            <div className={`${statusBodyClassName} text-sm leading-7 text-slate-300`}>
+            <div className={`${statusBodyClassName} text-sm leading-7 text-slate-700`}>
               <p>
                 {contractorError || "The form is intentionally blocked here so submissions are not attached to the wrong contractor."}
               </p>
@@ -518,7 +518,7 @@ function QuotePageContent() {
               <h1 className={isEmbedMode ? "mt-3 text-2xl font-semibold tracking-tight sm:text-3xl" : "mt-4 text-3xl font-semibold tracking-tight md:text-4xl"}>
                 Your preliminary range is unlocked
               </h1>
-              <p className={isEmbedMode ? "mt-2 max-w-2xl text-sm leading-6 text-slate-300" : "mt-3 max-w-2xl text-sm leading-7 text-slate-300 md:text-base"}>
+              <p className={isEmbedMode ? "mt-2 max-w-2xl text-sm leading-6 text-slate-700" : "mt-3 max-w-2xl text-sm leading-7 text-slate-700 md:text-base"}>
                 Thanks, {customerName}. Your request is in the contractor dashboard,
                 and your current projected range is below.
               </p>
@@ -533,14 +533,14 @@ function QuotePageContent() {
                   Estimated Range
                 </p>
                 <p className="mt-4">
-                  <span className={isEmbedMode ? "inline-flex rounded-2xl border border-amber-200/20 bg-amber-200/10 px-3 py-2 text-2xl font-extrabold leading-tight tracking-tight text-white drop-shadow-[0_8px_24px_rgba(245,158,11,0.32)] sm:text-3xl" : "inline-flex rounded-2xl border border-amber-200/20 bg-amber-200/10 px-4 py-2 text-4xl font-extrabold tracking-tight leading-none text-white drop-shadow-[0_8px_24px_rgba(245,158,11,0.32)] md:text-6xl"}>
+                  <span className={isEmbedMode ? "inline-flex rounded-2xl border border-amber-200/20 bg-amber-200/10 px-3 py-2 text-2xl font-extrabold leading-tight tracking-tight text-slate-900 drop-shadow-[0_8px_24px_rgba(245,158,11,0.32)] sm:text-3xl" : "inline-flex rounded-2xl border border-amber-200/20 bg-amber-200/10 px-4 py-2 text-4xl font-extrabold tracking-tight leading-none text-slate-900 drop-shadow-[0_8px_24px_rgba(245,158,11,0.32)] md:text-6xl"}>
                     ${estimate.lowEstimate.toLocaleString()} &ndash; ${estimate.highEstimate.toLocaleString()}
                   </span>
                 </p>
-                <p className={isEmbedMode ? "mt-3 max-w-2xl text-sm leading-6 text-slate-300" : "mt-4 max-w-2xl text-sm leading-7 text-slate-300"}>
+                <p className={isEmbedMode ? "mt-3 max-w-2xl text-sm leading-6 text-slate-700" : "mt-4 max-w-2xl text-sm leading-7 text-slate-700"}>
                   This estimate is based on your selections and measured fence footage.
                 </p>
-                <p className="mt-3 text-xs leading-5 text-slate-400">
+                <p className="mt-3 text-xs leading-5 text-slate-500">
                   Final pricing may vary based on layout, site access, removal needs, and other field conditions.
                 </p>
               </div>
@@ -548,11 +548,11 @@ function QuotePageContent() {
               <div className={isEmbedMode ? "mt-5 flex flex-col items-start gap-3 sm:flex-row sm:items-center" : "mt-8 flex flex-wrap items-center gap-3"}>
                 <button
                   onClick={() => setSubmitted(false)}
-                  className="inline-flex items-center justify-center rounded-2xl border border-white/20 bg-white/[0.06] px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/[0.10]"
+                  className="inline-flex items-center justify-center rounded-2xl border border-black/20 bg-white px-5 py-3 text-sm font-semibold text-slate-900 transition hover:bg-white/[0.10]"
                 >
                   Edit Submission
                 </button>
-                <span className="text-sm text-slate-400">
+                <span className="text-sm text-slate-500">
                   {selectedContractor.name} can now review your details and contact you.
                 </span>
               </div>
@@ -565,16 +565,16 @@ function QuotePageContent() {
 
   if (isEmbedMode && embedAccessError) {
     return (
-      <main className="px-3 py-4 text-white sm:px-4 sm:py-6">
+      <main className="px-3 py-4 text-slate-900 sm:px-4 sm:py-6">
         <div className="mx-auto max-w-3xl fade-in-up">
           <section className="glass-panel overflow-hidden rounded-[28px] shadow-[0_20px_80px_rgba(0,0,0,0.35)]">
-            <div className="border-b border-white/10 px-4 py-4 sm:px-6 sm:py-5">
+            <div className="border-b border-black/10 px-4 py-4 sm:px-6 sm:py-5">
               <p className="text-xs font-semibold uppercase tracking-[0.16em] text-rose-300">
                 Embed Access Blocked
               </p>
             </div>
             <div className="px-4 py-5 sm:px-6 sm:py-6">
-              <p className="text-sm text-slate-300">{embedAccessError}</p>
+              <p className="text-sm text-slate-700">{embedAccessError}</p>
             </div>
           </section>
         </div>
@@ -586,7 +586,7 @@ function QuotePageContent() {
     <main className={pageMainClassName}>
       <div className={pageShellClassName}>
         <header className={headerClassName}>
-          <div className="inline-flex rounded-full border border-white/10 bg-white/[0.05] px-3 py-1 text-xs font-semibold uppercase tracking-[0.15em] text-slate-300">
+          <div className="inline-flex rounded-full border border-black/10 bg-white px-3 py-1 text-xs font-semibold uppercase tracking-[0.15em] text-slate-700">
             {headerEyebrow}
           </div>
 
@@ -594,7 +594,7 @@ function QuotePageContent() {
             {headerTitle}
           </h1>
 
-          <p className={isEmbedMode ? "mt-3 max-w-2xl text-sm leading-7 text-slate-300 sm:text-base" : "mt-4 max-w-3xl text-base leading-8 text-slate-300"}>
+          <p className={isEmbedMode ? "mt-3 max-w-2xl text-sm leading-7 text-slate-700 sm:text-base" : "mt-4 max-w-3xl text-base leading-8 text-slate-700"}>
             {headerDescription}
           </p>
 
@@ -610,21 +610,21 @@ function QuotePageContent() {
             <form onSubmit={handleSubmit}>
               <div>
                 {!isEmbedMode ? (
-                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
+                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
                     Project Details
                   </p>
                 ) : null}
                 <h2 className={isEmbedMode ? "text-xl font-semibold tracking-tight sm:text-2xl" : "mt-3 text-2xl font-semibold tracking-tight md:text-3xl"}>
                   {formIntroTitle}
                 </h2>
-                <p className={isEmbedMode ? "mt-2 max-w-2xl text-sm leading-6 text-slate-300" : "mt-3 max-w-2xl text-sm leading-7 text-slate-300 md:text-base"}>
+                <p className={isEmbedMode ? "mt-2 max-w-2xl text-sm leading-6 text-slate-700" : "mt-3 max-w-2xl text-sm leading-7 text-slate-700 md:text-base"}>
                   {formIntroDescription}
                 </p>
               </div>
 
               <div className={isEmbedMode ? "mt-6 grid gap-4 md:grid-cols-2" : "mt-8 grid gap-5 md:grid-cols-2"}>
                 <div className="md:col-span-2">
-                  <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-slate-300">Full Name</label>
+                  <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-slate-700">Full Name</label>
                   <input
                     value={customerName}
                     onChange={(e) => {
@@ -638,7 +638,7 @@ function QuotePageContent() {
                 </div>
 
                 <div>
-                  <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-slate-300">Email</label>
+                  <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-slate-700">Email</label>
                   <input
                     type="email"
                     value={customerEmail}
@@ -653,7 +653,7 @@ function QuotePageContent() {
                 </div>
 
                 <div>
-                  <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-slate-300">Phone</label>
+                  <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-slate-700">Phone</label>
                   <input
                     type="tel"
                     value={customerPhone}
@@ -669,7 +669,7 @@ function QuotePageContent() {
 
                 <div className="grid gap-4 md:col-span-2 md:grid-cols-2">
                   <div className="md:col-span-2">
-                    <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-slate-300">
+                    <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-slate-700">
                       Street Address
                     </label>
                     <input
@@ -686,7 +686,7 @@ function QuotePageContent() {
                   </div>
 
                   <div>
-                    <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-slate-300">City</label>
+                    <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-slate-700">City</label>
                     <input
                       type="text"
                       value={city}
@@ -701,7 +701,7 @@ function QuotePageContent() {
                   </div>
 
                   <div>
-                    <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-slate-300">State</label>
+                    <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-slate-700">State</label>
                     <input
                       type="text"
                       value={state}
@@ -717,7 +717,7 @@ function QuotePageContent() {
                   </div>
 
                   <div>
-                    <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-slate-300">ZIP Code</label>
+                    <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-slate-700">ZIP Code</label>
                     <input
                       type="text"
                       value={zip}
@@ -738,14 +738,14 @@ function QuotePageContent() {
                     type="button"
                     disabled={!canSearch}
                     onClick={() => setSearchTrigger((prev) => prev + 1)}
-                    className="flex-1 rounded-2xl border border-white/10 bg-white/[0.05] px-4 py-3 text-sm font-medium text-white transition hover:bg-white/[0.08] disabled:cursor-not-allowed disabled:opacity-50"
+                    className="flex-1 rounded-2xl border border-black/10 bg-white px-4 py-3 text-sm font-medium text-slate-900 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     Find Address
                   </button>
                   <button
                     type="button"
                     onClick={() => setShowMap((prev) => !prev)}
-                    className="flex-1 rounded-2xl border border-white/10 bg-white/[0.05] px-4 py-3 text-sm font-medium text-white transition hover:bg-white/[0.08]"
+                    className="flex-1 rounded-2xl border border-black/10 bg-white px-4 py-3 text-sm font-medium text-slate-900 transition hover:bg-slate-100"
                   >
                     {showMap ? "Hide Map" : "Open Map"}
                   </button>
@@ -753,7 +753,7 @@ function QuotePageContent() {
 
                 {showMap && (
                   <div className="md:col-span-2">
-                    <div className="rounded-3xl border border-white/10 bg-white/[0.03] p-3 sm:p-4">
+                    <div className="rounded-3xl border border-black/10 bg-slate-50 p-3 sm:p-4">
                       <FenceDrawMap
                         address={fullAddress}
                         searchTrigger={searchTrigger}
@@ -767,11 +767,11 @@ function QuotePageContent() {
 
                 <div className="md:col-span-2 pb-1 pt-3">
                   <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">Fence Specifications</p>
-                  <div className="mt-2 h-px bg-white/[0.06]" />
+                  <div className="mt-2 h-px bg-black/10" />
                 </div>
 
                 <div>
-                  <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-slate-300">Fence Type</label>
+                  <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-slate-700">Fence Type</label>
                   <select
                     value={fenceType}
                     onChange={(e) => setFenceType(e.target.value as FenceType)}
@@ -781,7 +781,7 @@ function QuotePageContent() {
                       <option
                         key={type}
                         value={type}
-                        className="bg-[#111114]"
+                        className="bg-white"
                         disabled={!availableFenceTypes.has(type)}
                       >
                         {formatFenceType(type)}
@@ -791,7 +791,7 @@ function QuotePageContent() {
                 </div>
 
                 <div>
-                  <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-slate-300">Fence Height</label>
+                  <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-slate-700">Fence Height</label>
                   <select
                     value={fenceHeight}
                     onChange={(e) => setFenceHeight(e.target.value as FenceHeight)}
@@ -801,7 +801,7 @@ function QuotePageContent() {
                       <option
                         key={height}
                         value={height}
-                        className="bg-[#111114]"
+                        className="bg-white"
                         disabled={!availableHeightsForFenceType.has(height)}
                       >
                         {height} ft
@@ -811,14 +811,14 @@ function QuotePageContent() {
                 </div>
 
                 <div>
-                  <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-slate-300">Yard Grade</label>
+                  <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-slate-700">Yard Grade</label>
                   <select
                     value={yardGrade}
                     onChange={(e) => setYardGrade(e.target.value as YardGrade)}
                     className={selectClass()}
                   >
                     {YARD_GRADES.map((grade) => (
-                      <option key={grade} value={grade} className="bg-[#111114]">
+                      <option key={grade} value={grade} className="bg-white">
                         {grade === "moderate" ? "Moderate Slope" : formatYardGrade(grade)}
                       </option>
                     ))}
@@ -826,7 +826,7 @@ function QuotePageContent() {
                 </div>
 
                 <div>
-                  <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-slate-300">Linear Feet</label>
+                  <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-slate-700">Linear Feet</label>
                   <input
                     type="number"
                     value={linearFeet}
@@ -840,7 +840,7 @@ function QuotePageContent() {
                 </div>
 
                 <div>
-                  <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-slate-300">Number of Gates</label>
+                  <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-slate-700">Number of Gates</label>
                   <input
                     type="number"
                     value={gates}
@@ -854,7 +854,7 @@ function QuotePageContent() {
                 </div>
 
                 <div className="md:col-span-2">
-                  <label className="flex cursor-pointer items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.05] px-4 py-4 text-sm text-slate-200 transition duration-200 hover:border-amber-400/25 hover:bg-amber-400/[0.05]">
+                  <label className="flex cursor-pointer items-center gap-3 rounded-2xl border border-black/10 bg-white px-4 py-4 text-sm text-slate-700 transition duration-200 hover:border-amber-400/25 hover:bg-amber-400/[0.05]">
                     <input
                       type="checkbox"
                       checked={tearOut}
@@ -915,7 +915,7 @@ function QuotePageContent() {
                         : "Get My Estimate"}
                   </button>
 
-                  <p className="text-sm text-slate-300">
+                  <p className="text-sm text-slate-700">
                     Your range appears immediately after successful submission.
                   </p>
                 </div>
@@ -923,26 +923,26 @@ function QuotePageContent() {
             </form>
 
             <aside className={isEmbedMode ? "space-y-4" : "space-y-5"}>
-              <div className={isEmbedMode ? "rounded-3xl border border-white/10 bg-white/[0.03] p-4 sm:p-5" : "rounded-3xl border border-white/10 bg-white/[0.03] p-6"}>
-                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
+              <div className={isEmbedMode ? "rounded-3xl border border-black/10 bg-slate-50 p-4 sm:p-5" : "rounded-3xl border border-black/10 bg-slate-50 p-6"}>
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
                   {isEmbedMode ? "Live Summary" : "Current Inputs"}
                 </p>
-                <div className="mt-4 space-y-2 text-sm text-slate-300">
-                  <p>Type: <span className="font-medium text-white">{formatFenceType(fenceType)}</span></p>
-                  <p>Height: <span className="font-medium text-white">{fenceHeight} ft</span></p>
-                  <p>Yard Grade: <span className="font-medium text-white">{formatYardGrade(yardGrade)}</span></p>
-                  <p>Linear Feet: <span className="font-medium text-white">{linearFeet}</span></p>
-                  <p>Gates: <span className="font-medium text-white">{gates}</span></p>
-                  <p>Tear-out: <span className="font-medium text-white">{tearOut ? "Yes" : "No"}</span></p>
+                <div className="mt-4 space-y-2 text-sm text-slate-700">
+                  <p>Type: <span className="font-medium text-slate-900">{formatFenceType(fenceType)}</span></p>
+                  <p>Height: <span className="font-medium text-slate-900">{fenceHeight} ft</span></p>
+                  <p>Yard Grade: <span className="font-medium text-slate-900">{formatYardGrade(yardGrade)}</span></p>
+                  <p>Linear Feet: <span className="font-medium text-slate-900">{linearFeet}</span></p>
+                  <p>Gates: <span className="font-medium text-slate-900">{gates}</span></p>
+                  <p>Tear-out: <span className="font-medium text-slate-900">{tearOut ? "Yes" : "No"}</span></p>
                 </div>
               </div>
 
               {!isEmbedMode ? (
-                <div className="rounded-3xl border border-white/10 bg-white/[0.03] p-6">
-                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
+                <div className="rounded-3xl border border-black/10 bg-slate-50 p-6">
+                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
                     What Happens Next
                   </p>
-                  <ol className="mt-3 list-decimal space-y-2 pl-5 text-sm leading-6 text-slate-300">
+                  <ol className="mt-3 list-decimal space-y-2 pl-5 text-sm leading-6 text-slate-700">
                     <li>Your request is saved to the contractor dashboard.</li>
                     <li>A contractor reviews scope and site details.</li>
                     <li>You receive final follow-up for verified pricing.</li>
@@ -953,7 +953,7 @@ function QuotePageContent() {
                   <p className="text-xs font-semibold uppercase tracking-[0.16em] text-amber-100/80">
                     Embed Mode
                   </p>
-                  <p className="mt-3 text-sm leading-6 text-slate-300">
+                  <p className="mt-3 text-sm leading-6 text-slate-700">
                     This widget is trimmed for embedded use and will post height updates to the host page as the map, validation, and estimate states expand or collapse.
                   </p>
                 </div>
@@ -970,8 +970,8 @@ export default function QuotePage() {
   return (
     <Suspense
       fallback={
-        <main className="min-h-screen px-4 py-10 text-white">
-          <div className="mx-auto max-w-4xl text-center text-slate-400">Loading quote form...</div>
+        <main className="min-h-screen px-4 py-10 text-slate-900">
+          <div className="mx-auto max-w-4xl text-center text-slate-500">Loading quote form...</div>
         </main>
       }
     >
@@ -979,6 +979,8 @@ export default function QuotePage() {
     </Suspense>
   );
 }
+
+
 
 
 
