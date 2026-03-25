@@ -635,7 +635,7 @@ export default function QuotePage() {
                 <div className="h-px flex-1 bg-white/[0.08]" />
               </div>
 
-              <div className="mt-5 grid gap-5 md:grid-cols-2">
+              <div className="mt-5 grid gap-4 md:grid-cols-2">
                 <div className="md:col-span-2">
                   <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-slate-300">Full Name</label>
                   <input
@@ -686,11 +686,9 @@ export default function QuotePage() {
                   <div className="h-px flex-1 bg-white/[0.08]" />
                 </div>
 
-                <div className="grid gap-4 md:col-span-2 md:grid-cols-2">
-                  <div className="md:col-span-2">
-                    <label className="mb-2 block text-sm font-medium text-white">
-                      Street Address
-                    </label>
+                <div className="md:col-span-2 space-y-4">
+                  <div>
+                    <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-slate-300">Street Address</label>
                     <input
                       type="text"
                       value={streetAddress}
@@ -704,63 +702,64 @@ export default function QuotePage() {
                     {fieldErrors.streetAddress ? <p className="mt-2 text-xs text-rose-300">{fieldErrors.streetAddress}</p> : null}
                   </div>
 
-                  <div>
-                    <label className="mb-2 block text-sm font-medium text-white">City</label>
-                    <input
-                      type="text"
-                      value={city}
-                      onChange={(e) => {
-                        setCity(e.target.value);
-                        clearFieldError("city");
-                      }}
-                      placeholder="Chesterfield"
-                      className={inputClass("city", city.trim().length > 0)}
-                    />
-                    {fieldErrors.city ? <p className="mt-2 text-xs text-rose-300">{fieldErrors.city}</p> : null}
+                  <div className="grid grid-cols-2 gap-3 sm:grid-cols-[1fr_80px_104px]">
+                    <div className="col-span-2 sm:col-span-1">
+                      <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-slate-300">City</label>
+                      <input
+                        type="text"
+                        value={city}
+                        onChange={(e) => {
+                          setCity(e.target.value);
+                          clearFieldError("city");
+                        }}
+                        placeholder="Chesterfield"
+                        className={inputClass("city", city.trim().length > 0)}
+                      />
+                      {fieldErrors.city ? <p className="mt-2 text-xs text-rose-300">{fieldErrors.city}</p> : null}
+                    </div>
+
+                    <div>
+                      <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-slate-300">State</label>
+                      <input
+                        type="text"
+                        value={state}
+                        onChange={(e) => {
+                          setState(e.target.value.toUpperCase().slice(0, 2));
+                          clearFieldError("state");
+                        }}
+                        placeholder="MO"
+                        className={inputClass("state", state.trim().length > 0)}
+                        maxLength={2}
+                      />
+                      {fieldErrors.state ? <p className="mt-2 text-xs text-rose-300">{fieldErrors.state}</p> : null}
+                    </div>
+
+                    <div>
+                      <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-slate-300">ZIP</label>
+                      <input
+                        type="text"
+                        value={zip}
+                        onChange={(e) => {
+                          setZip(e.target.value.replace(/\D/g, "").slice(0, 5));
+                          clearFieldError("zip");
+                        }}
+                        placeholder="63017"
+                        className={inputClass("zip", zip.trim().length > 0)}
+                        inputMode="numeric"
+                      />
+                      {fieldErrors.zip ? <p className="mt-2 text-xs text-rose-300">{fieldErrors.zip}</p> : null}
+                    </div>
                   </div>
 
-                  <div>
-                    <label className="mb-2 block text-sm font-medium text-white">State</label>
-                    <input
-                      type="text"
-                      value={state}
-                      onChange={(e) => {
-                        setState(e.target.value.toUpperCase().slice(0, 2));
-                        clearFieldError("state");
-                      }}
-                      placeholder="MO"
-                      className={inputClass("state", state.trim().length > 0)}
-                      maxLength={2}
-                    />
-                    {fieldErrors.state ? <p className="mt-2 text-xs text-rose-300">{fieldErrors.state}</p> : null}
-                  </div>
-
-                  <div>
-                    <label className="mb-2 block text-sm font-medium text-white">ZIP Code</label>
-                    <input
-                      type="text"
-                      value={zip}
-                      onChange={(e) => {
-                        setZip(e.target.value.replace(/\D/g, "").slice(0, 5));
-                        clearFieldError("zip");
-                      }}
-                      placeholder="63017"
-                      className={inputClass("zip", zip.trim().length > 0)}
-                      inputMode="numeric"
-                    />
-                    {fieldErrors.zip ? <p className="mt-2 text-xs text-rose-300">{fieldErrors.zip}</p> : null}
-                  </div>
-
-                  <div className="flex items-end pb-0.5">
+                  {canSearch && (
                     <button
                       type="button"
-                      disabled={!canSearch}
                       onClick={() => setSearchTrigger((prev) => prev + 1)}
-                      className="text-xs text-slate-500 underline underline-offset-4 transition hover:text-white disabled:cursor-not-allowed disabled:opacity-30"
+                      className="text-xs text-slate-500 underline underline-offset-4 transition hover:text-white"
                     >
                       Re-search address
                     </button>
-                  </div>
+                  )}
                 </div>
 
                 {showMap && (
