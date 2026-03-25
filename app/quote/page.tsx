@@ -976,22 +976,22 @@ export default function QuotePage() {
               ) : null}
 
               {!error && pricingError ? (
-                <div className="mt-6 rounded-2xl border border-amber-300/25 bg-amber-300/10 px-4 py-3 text-sm text-amber-100">
+                <div className="mt-6 rounded-2xl border border-white/10 bg-white/[0.05] px-4 py-3 text-sm text-slate-300">
                   {pricingError}
                 </div>
               ) : null}
 
-              <div className="mt-8 rounded-2xl border border-white/10 bg-white/[0.03] p-5">
-                <p className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500">What Happens Next</p>
-                <ol className="mt-3 space-y-2">
+              <div className="mt-8 rounded-2xl border border-white/[0.07] bg-white/[0.03] px-5 py-4">
+                <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-600">What Happens Next</p>
+                <ol className="mt-3 space-y-2.5">
                   {[
                     "Your request is saved to the contractor dashboard.",
                     "A contractor reviews scope and site details.",
                     "You receive final follow-up with verified pricing.",
                   ].map((step, i) => (
-                    <li key={i} className="flex gap-3 text-sm text-slate-400">
+                    <li key={i} className="flex items-start gap-3 text-sm text-slate-400">
                       <span
-                        className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border text-[10px] font-bold"
+                        className="mt-px flex h-4 w-4 shrink-0 items-center justify-center rounded-full border text-[9px] font-bold"
                         style={{ borderColor: hexToRgba(selectedContractor.accentColor, 0.30), backgroundColor: hexToRgba(selectedContractor.accentColor, 0.10), color: selectedContractor.accentColor }}
                       >
                         {i + 1}
@@ -1002,19 +1002,36 @@ export default function QuotePage() {
                 </ol>
               </div>
 
-              <div className="mt-5">
+              <div className="mt-5 space-y-3">
                 <button
                   type="submit"
                   disabled={isSubmitting || isPricingLoading || !estimate || estimate.unavailable}
-                  className="w-full rounded-2xl bg-white py-4 text-sm font-semibold text-slate-950 transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+                  className="relative w-full overflow-hidden rounded-2xl bg-white py-4 text-base font-semibold text-slate-950 transition-all duration-200 hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+                  style={{
+                    boxShadow: isSubmitting || isPricingLoading || !estimate || estimate.unavailable
+                      ? "none"
+                      : `0 0 28px ${hexToRgba(selectedContractor.accentColor, 0.40)}, 0 4px 12px rgba(0,0,0,0.25)`,
+                  }}
                 >
-                  {isSubmitting
-                    ? "Submitting..."
-                    : isPricingLoading
-                      ? "Loading Pricing..."
-                      : "Get My Estimate"}
+                  {isSubmitting ? (
+                    <span className="flex items-center justify-center gap-2">
+                      <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
+                        <circle className="opacity-20" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                        <path className="opacity-80" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                      </svg>
+                      Submitting…
+                    </span>
+                  ) : isPricingLoading ? (
+                    <span className="flex items-center justify-center gap-2">
+                      <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
+                        <circle className="opacity-20" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                        <path className="opacity-80" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                      </svg>
+                      Calculating…
+                    </span>
+                  ) : "Get My Estimate"}
                 </button>
-                <p className="mt-3 text-center text-xs text-slate-500">
+                <p className="text-center text-xs text-slate-500">
                   No obligation — your range unlocks the moment you submit.
                 </p>
               </div>
