@@ -91,7 +91,9 @@ export default function HomePage() {
             >
               Start for free
               <svg
-                className="h-4 w-4 transition-transform group-hover:translate-x-0.5"
+                className="h-4 w-4 shrink-0 transition-transform group-hover:translate-x-0.5"
+                width="16"
+                height="16"
                 fill="none"
                 viewBox="0 0 16 16"
               >
@@ -109,7 +111,9 @@ export default function HomePage() {
               className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/[0.05] px-8 py-4 text-base font-semibold text-white backdrop-blur transition-all hover:border-white/30 hover:bg-white/[0.09]"
             >
               <svg
-                className="h-4 w-4 text-white/60"
+                className="h-4 w-4 shrink-0 text-white/60"
+                width="16"
+                height="16"
                 fill="none"
                 viewBox="0 0 16 16"
               >
@@ -254,7 +258,7 @@ export default function HomePage() {
                 title: "Create your account",
                 body: "Sign up and enter your pricing per linear foot for each fence type you offer.",
                 icon: (
-                  <svg className="h-5 w-5" fill="none" viewBox="0 0 20 20">
+                  <svg className="h-5 w-5 shrink-0" width="20" height="20" fill="none" viewBox="0 0 20 20">
                     <path
                       d="M10 2a8 8 0 100 16A8 8 0 0010 2zm0 5v4l2.5 2.5"
                       stroke="currentColor"
@@ -269,7 +273,7 @@ export default function HomePage() {
                 title: "Paste one line of code",
                 body: "Copy your unique embed snippet and drop it into any site builder — Wix, WordPress, Webflow, or plain HTML.",
                 icon: (
-                  <svg className="h-5 w-5" fill="none" viewBox="0 0 20 20">
+                  <svg className="h-5 w-5 shrink-0" width="20" height="20" fill="none" viewBox="0 0 20 20">
                     <path
                       d="M6 7l-4 4 4 4M14 7l4 4-4 4M12 3l-4 14"
                       stroke="currentColor"
@@ -285,7 +289,7 @@ export default function HomePage() {
                 title: "Receive leads on autopilot",
                 body: "Homeowners draw their fence, get an instant estimate, and submit. You're notified with all their details.",
                 icon: (
-                  <svg className="h-5 w-5" fill="none" viewBox="0 0 20 20">
+                  <svg className="h-5 w-5 shrink-0" width="20" height="20" fill="none" viewBox="0 0 20 20">
                     <path
                       d="M3 4h14M3 9h14M3 14h8"
                       stroke="currentColor"
@@ -342,7 +346,7 @@ export default function HomePage() {
                 title: "Draw-on-map estimates",
                 body: "Homeowners trace their fence line on a satellite map. Real measurements, real estimates.",
                 icon: (
-                  <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24">
+                  <svg className="h-6 w-6 shrink-0" width="24" height="24" fill="none" viewBox="0 0 24 24">
                     <rect
                       x="3"
                       y="3"
@@ -366,7 +370,7 @@ export default function HomePage() {
                 title: "Property line overlay",
                 body: "Auto-loads parcel boundaries so homeowners know exactly where their fence can go.",
                 icon: (
-                  <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24">
+                  <svg className="h-6 w-6 shrink-0" width="24" height="24" fill="none" viewBox="0 0 24 24">
                     <path
                       d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"
                       stroke="currentColor"
@@ -388,7 +392,7 @@ export default function HomePage() {
                 title: "Instant pricing",
                 body: "Your rates, your fence types. Estimates are generated instantly based on your custom pricing.",
                 icon: (
-                  <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24">
+                  <svg className="h-6 w-6 shrink-0" width="24" height="24" fill="none" viewBox="0 0 24 24">
                     <path
                       d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"
                       stroke="currentColor"
@@ -403,7 +407,7 @@ export default function HomePage() {
                 title: "Email notifications",
                 body: "Get notified the moment a homeowner submits — with their contact info, fence specs, and map.",
                 icon: (
-                  <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24">
+                  <svg className="h-6 w-6 shrink-0" width="24" height="24" fill="none" viewBox="0 0 24 24">
                     <rect
                       x="2"
                       y="4"
@@ -426,7 +430,7 @@ export default function HomePage() {
                 title: "CRM integration",
                 body: "Webhook support pushes leads directly into your CRM the instant they come in.",
                 icon: (
-                  <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24">
+                  <svg className="h-6 w-6 shrink-0" width="24" height="24" fill="none" viewBox="0 0 24 24">
                     <path
                       d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"
                       stroke="currentColor"
@@ -448,7 +452,7 @@ export default function HomePage() {
                 title: "White-label ready",
                 body: "Match your brand colors. It looks native on your site, not like a third-party widget.",
                 icon: (
-                  <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24">
+                  <svg className="h-6 w-6 shrink-0" width="24" height="24" fill="none" viewBox="0 0 24 24">
                     <circle
                       cx="12"
                       cy="12"
@@ -567,7 +571,7 @@ export default function HomePage() {
                   className="inline-flex items-center gap-2.5 rounded-full bg-amber-400 px-10 py-5 text-base font-bold text-black transition-all hover:bg-amber-300 hover:shadow-[0_0_60px_rgba(251,191,36,0.4)]"
                 >
                   Get started free
-                  <svg className="h-4 w-4" fill="none" viewBox="0 0 16 16">
+                  <svg className="h-4 w-4 shrink-0" width="16" height="16" fill="none" viewBox="0 0 16 16">
                     <path
                       d="M3 8h10M9 4l4 4-4 4"
                       stroke="currentColor"
