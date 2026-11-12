@@ -33,6 +33,8 @@ body {
 
 body[data-embedded="true"] {
   min-height: auto;
+  background: transparent;
+  background-image: none;
 }
 
 /* Scrollbar */

@@ -473,14 +473,14 @@ export default function FenceDrawMap({ address, searchTrigger, onDistanceChange 
   return (
     <div className="space-y-2">
 
-      <div className="text-sm font-medium text-emerald-300">Total: {totalFeet} ft</div>
+      <div className="text-sm font-medium text-emerald-700">Total: {totalFeet} ft</div>
 
       <div className="flex flex-wrap items-center gap-2">
         <button
           type="button"
           onClick={useParcelBoundary}
           disabled={isParcelLoading}
-          className="inline-flex min-h-10 w-full items-center justify-center rounded-xl border border-emerald-400/30 bg-emerald-500/15 px-3 py-2 text-xs font-medium text-emerald-300 transition hover:bg-emerald-500/25 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
+          className="inline-flex min-h-10 w-full items-center justify-center rounded-xl border border-emerald-400/30 bg-emerald-500/15 px-3 py-2 text-xs font-medium text-emerald-700 transition hover:bg-emerald-500/25 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
         >
           {isParcelLoading ? "Loading..." : "Show Property Lines"}
         </button>
@@ -511,8 +511,8 @@ export default function FenceDrawMap({ address, searchTrigger, onDistanceChange 
         <div
           className={
             parcelMessageIsError
-              ? "rounded-xl border border-rose-400/35 bg-rose-500/10 px-3 py-2 text-xs text-rose-200"
-              : "rounded-xl border border-emerald-400/35 bg-emerald-500/10 px-3 py-2 text-xs text-emerald-200"
+              ? "rounded-xl border border-rose-400/35 bg-rose-500/10 px-3 py-2 text-xs text-rose-700"
+              : "rounded-xl border border-emerald-400/35 bg-emerald-500/10 px-3 py-2 text-xs text-emerald-700"
           }
         >
           {parcelMessage}
