@@ -1,5 +1,10 @@
+import { redirect } from "next/navigation";
 import AdminSubmissionsTable from "../../components/admin-submissions-table";
-import { createSupabaseClient } from "../../lib/supabase";
+import { isAdminAuthed } from "../../lib/admin-auth";
+import { getSupabaseAdmin } from "../../lib/supabase-admin";
+
+// Always render per request so signed-out visitors are redirected and data is never cached.
+export const dynamic = "force-dynamic";
 
 type QuoteSubmission = {
   id: string;
@@ -32,7 +37,7 @@ type QuoteSubmission = {
 };
 
 async function getQuoteSubmissions(): Promise<QuoteSubmission[]> {
-  const supabase = createSupabaseClient();
+  const supabase = getSupabaseAdmin();
 
   const detailedSelect = `
     id,
@@ -100,14 +105,28 @@ async function getQuoteSubmissions(): Promise<QuoteSubmission[]> {
 }
 
 export default async function AdminPage() {
+  if (!(await isAdminAuthed())) {
+    redirect("/admin/login");
+  }
+
   const submissions = await getQuoteSubmissions();
 
   return (
     <main className="min-h-screen px-4 py-10 text-slate-900">
       <div className="mx-auto max-w-6xl fade-in-up">
         <div className="mb-8">
-          <div className="inline-flex rounded-full border border-black/10 bg-white px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-slate-700">
-            Contractor Console
+          <div className="flex items-center justify-between gap-3">
+            <div className="inline-flex rounded-full border border-black/10 bg-white px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-slate-700">
+              Contractor Console
+            </div>
+            <form method="post" action="/api/admin/logout">
+              <button
+                type="submit"
+                className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500 transition hover:text-slate-900"
+              >
+                Sign out
+              </button>
+            </form>
           </div>
           <h1 className="mt-4 text-4xl font-semibold tracking-tight">Admin Dashboard</h1>
           <p className="mt-3 text-slate-700">

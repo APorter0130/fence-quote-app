@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { createSupabaseClient } from "../lib/supabase";
 
 type QuoteSubmission = {
   id: string;
@@ -61,6 +60,32 @@ function formatSubmissionDate(createdAt: string) {
   return new Date(createdAt).toLocaleDateString();
 }
 
+async function saveSubmissionChange(
+  id: string,
+  changes: { status?: string; internal_notes?: string }
+): Promise<string | null> {
+  try {
+    const res = await fetch("/api/admin/submissions", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id, ...changes }),
+    });
+
+    if (res.ok) {
+      return null;
+    }
+
+    if (res.status === 401) {
+      return "Your session expired. Please sign in again.";
+    }
+
+    const data = (await res.json().catch(() => null)) as { error?: string } | null;
+    return data?.error ?? "Could not save the change.";
+  } catch {
+    return "Could not save the change. Check your connection and try again.";
+  }
+}
+
 export default function AdminSubmissionsTable({
   initialSubmissions,
 }: Props) {
@@ -73,16 +98,10 @@ export default function AdminSubmissionsTable({
     setError("");
     setSavingId(id);
 
-    const supabase = createSupabaseClient();
+    const saveError = await saveSubmissionChange(id, { status: newStatus });
 
-    const { error } = await supabase
-      .from("quote_submissions")
-      .update({ status: newStatus })
-      .eq("id", id);
-
-    if (error) {
-      console.error("Status update error:", error);
-      setError(error.message);
+    if (saveError) {
+      setError(saveError);
       setSavingId(null);
       return;
     }
@@ -102,16 +121,10 @@ export default function AdminSubmissionsTable({
     setError("");
     setNotesSavingId(id);
 
-    const supabase = createSupabaseClient();
+    const saveError = await saveSubmissionChange(id, { internal_notes: newNotes });
 
-    const { error } = await supabase
-      .from("quote_submissions")
-      .update({ internal_notes: newNotes })
-      .eq("id", id);
-
-    if (error) {
-      console.error("Notes update error:", error);
-      setError(error.message);
+    if (saveError) {
+      setError(saveError);
       setNotesSavingId(null);
       return;
     }

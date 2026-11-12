@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Resend } from "resend";
-import { supabase } from "../../../../lib/supabase";
+import { supabaseAdmin as supabase } from "../../../../lib/supabase-admin";
+import { escapeHtml } from "../../../../lib/html";
 import { FENCE_TYPES, FENCE_HEIGHTS } from "../../../../types/quote";
 import type { FenceType, FenceHeight } from "../../../../types/quote";
 
@@ -117,12 +118,12 @@ function buildPricingAuditEmail(params: {
   <div style="font-family:Segoe UI,Arial,sans-serif;max-width:560px;margin:0 auto;padding:20px;color:#111827">
     <h2 style="margin:0 0 14px 0;font-size:20px">Pricing Change Audit</h2>
     <table style="border-collapse:collapse;width:100%">
-      <tr><td style="padding:6px 0;color:#6b7280">Contractor</td><td style="padding:6px 0">${contractorSlug}</td></tr>
+      <tr><td style="padding:6px 0;color:#6b7280">Contractor</td><td style="padding:6px 0">${escapeHtml(contractorSlug)}</td></tr>
       <tr><td style="padding:6px 0;color:#6b7280">Rows Saved</td><td style="padding:6px 0">${rowsSaved}</td></tr>
-      <tr><td style="padding:6px 0;color:#6b7280">Source</td><td style="padding:6px 0">${source}</td></tr>
-      <tr><td style="padding:6px 0;color:#6b7280">File</td><td style="padding:6px 0">${fileName}</td></tr>
+      <tr><td style="padding:6px 0;color:#6b7280">Source</td><td style="padding:6px 0">${escapeHtml(source)}</td></tr>
+      <tr><td style="padding:6px 0;color:#6b7280">File</td><td style="padding:6px 0">${escapeHtml(fileName)}</td></tr>
       <tr><td style="padding:6px 0;color:#6b7280">Changed At</td><td style="padding:6px 0">${changedAtIso}</td></tr>
-      <tr><td style="padding:6px 0;color:#6b7280">Log ID</td><td style="padding:6px 0">${logId}</td></tr>
+      <tr><td style="padding:6px 0;color:#6b7280">Log ID</td><td style="padding:6px 0">${escapeHtml(logId)}</td></tr>
       <tr><td style="padding:6px 0;color:#6b7280">Inserted Rows</td><td style="padding:6px 0">${insertedRows}</td></tr>
       <tr><td style="padding:6px 0;color:#6b7280">Updated Rows</td><td style="padding:6px 0">${updatedRows}</td></tr>
       <tr><td style="padding:6px 0;color:#6b7280">Unchanged Rows</td><td style="padding:6px 0">${unchangedRows}</td></tr>
@@ -326,6 +327,7 @@ export async function POST(req: NextRequest) {
 
   const auditEmail = process.env.PRICING_AUDIT_EMAIL?.trim();
   const resendKey = process.env.RESEND_API_KEY?.trim();
+  const fromEmail = process.env.RESEND_FROM_EMAIL?.trim();
   const changedAtIso = new Date().toISOString();
   let pricingChangeLogId = "n/a";
 
@@ -357,12 +359,12 @@ export async function POST(req: NextRequest) {
     pricingChangeLogId = pricingLogRow.id;
   }
 
-  if (auditEmail && resendKey) {
+  if (auditEmail && resendKey && fromEmail) {
     const resend = new Resend(resendKey);
 
     void resend.emails
       .send({
-        from: process.env.RESEND_FROM_EMAIL ?? "quotes@fenceestimate.app",
+        from: fromEmail,
         to: auditEmail,
         subject: `Pricing updated: ${contractor.slug}`,
         html: buildPricingAuditEmail({

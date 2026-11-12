@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { supabase } from "../../../../lib/supabase";
+import { supabaseAdmin as supabase } from "../../../../lib/supabase-admin";
 import { createEmbedSignature } from "../../../../lib/embed-signature";
 
 async function resolveContractorByToken(token: string) {

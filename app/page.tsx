@@ -11,12 +11,6 @@ export default function HomePage() {
           </span>
           <div className="flex items-center gap-3">
             <Link
-              href="/admin"
-              className="text-sm text-slate-600 transition hover:text-slate-800"
-            >
-              Admin
-            </Link>
-            <Link
               href="/onboard"
               className="rounded-lg bg-amber-400 px-4 py-2 text-sm font-semibold text-black transition hover:bg-amber-300"
             >
@@ -231,9 +225,6 @@ export default function HomePage() {
           <div className="flex gap-6">
             <Link href="/onboard" className="transition hover:text-slate-600">
               Contractor Signup
-            </Link>
-            <Link href="/admin" className="transition hover:text-slate-600">
-              Admin
             </Link>
           </div>
         </div>
