@@ -368,6 +368,12 @@ export default function FenceDrawMap({ address, searchTrigger, onDistanceChange 
           center: [-90.5517, 38.8121],
           zoom: 19,
           maxZoom: 22,
+          // On touch screens, one finger scrolls the page and two fingers move the map, so the
+          // map never traps scrolling inside a long form or an embedded frame. Tapping to place
+          // fence points still works, and desktop behaves exactly as before.
+          cooperativeGestures:
+            typeof window !== "undefined" &&
+            window.matchMedia("(pointer: coarse)").matches,
         });
 
         mapRef.current = map;
