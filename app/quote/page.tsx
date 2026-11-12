@@ -96,17 +96,17 @@ function QuotePageContent() {
   const isEmbedMode = isEmbedded || isEmbedRoute || isEmbedQueryMode;
 
   const pageMainClassName = isEmbedMode
-    ? "px-3 py-4 text-slate-900 sm:px-4 sm:py-6"
+    ? "bg-transparent px-1 py-2 text-slate-900 sm:px-2 sm:py-3"
     : "min-h-screen px-4 py-10 text-slate-900";
 
   const pageShellClassName = isEmbedMode ? "mx-auto max-w-4xl fade-in-up" : "mx-auto max-w-6xl fade-in-up";
 
   const sectionClassName = isEmbedMode
-    ? "glass-panel rounded-[28px] p-4 shadow-[0_20px_80px_rgba(0,0,0,0.35)] sm:p-6"
+    ? "p-0"
     : "glass-panel rounded-[32px] p-6 shadow-[0_20px_80px_rgba(0,0,0,0.35)] md:p-8";
 
   const contentGridClassName = isEmbedMode
-    ? "grid gap-5 lg:grid-cols-[1.18fr_0.82fr]"
+    ? "grid gap-5"
     : "grid gap-8 lg:grid-cols-[1.2fr_0.8fr]";
 
   const stickySubmitClassName = isEmbedMode
@@ -125,7 +125,7 @@ function QuotePageContent() {
     : "Fill out all fields below to generate your estimate and submit your request.";
   const statusShellClassName = isEmbedMode ? "mx-auto max-w-3xl fade-in-up" : "mx-auto max-w-4xl fade-in-up";
   const statusSectionClassName = isEmbedMode
-    ? "glass-panel overflow-hidden rounded-[28px] shadow-[0_20px_80px_rgba(0,0,0,0.35)]"
+    ? "overflow-hidden rounded-2xl border border-black/10 bg-white"
     : "glass-panel overflow-hidden rounded-[32px] shadow-[0_20px_80px_rgba(0,0,0,0.35)]";
   const statusHeaderClassName = isEmbedMode
     ? "border-b border-black/10 px-4 py-4 sm:px-6 sm:py-5"
@@ -468,13 +468,21 @@ function QuotePageContent() {
     }
   }
 
+  if (isContractorLoading && isEmbedMode) {
+    return (
+      <main className={pageMainClassName}>
+        <p className="py-10 text-center text-sm text-slate-500">Loading&hellip;</p>
+      </main>
+    );
+  }
+
   if (isContractorLoading) {
     return (
       <main className={pageMainClassName}>
         <div className={statusShellClassName}>
           <section className={statusSectionClassName}>
             <div className={`${statusHeaderClassName} bg-gradient-to-r from-amber-300/15 via-transparent to-transparent`}>
-              <div className="inline-flex rounded-full border border-amber-300/40 bg-amber-300/15 px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-amber-200">
+              <div className="inline-flex rounded-full border border-amber-300/40 bg-amber-300/15 px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-amber-700">
                 Loading
               </div>
               <h1 className={isEmbedMode ? "mt-3 text-2xl font-semibold tracking-tight sm:text-3xl" : "mt-4 text-3xl font-semibold tracking-tight md:text-4xl"}>
@@ -496,7 +504,7 @@ function QuotePageContent() {
         <div className={statusShellClassName}>
           <section className={statusSectionClassName}>
             <div className={`${statusHeaderClassName} bg-gradient-to-r from-rose-300/15 via-transparent to-transparent`}>
-              <div className="inline-flex rounded-full border border-rose-300/40 bg-rose-300/15 px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-rose-200">
+              <div className="inline-flex rounded-full border border-rose-300/40 bg-rose-300/15 px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-rose-700">
                 Link Not Active
               </div>
               <h1 className={isEmbedMode ? "mt-3 text-2xl font-semibold tracking-tight sm:text-3xl" : "mt-4 text-3xl font-semibold tracking-tight md:text-4xl"}>
@@ -524,7 +532,7 @@ function QuotePageContent() {
         <div className={statusShellClassName}>
           <section className={statusSectionClassName}>
             <div className={`${statusHeaderClassName} bg-gradient-to-r from-emerald-300/15 via-transparent to-transparent`}>
-              <div className="inline-flex rounded-full border border-emerald-300/40 bg-emerald-300/15 px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-emerald-200">
+              <div className="inline-flex rounded-full border border-emerald-300/40 bg-emerald-300/15 px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-emerald-700">
                 Estimate Ready
               </div>
               <h1 className={isEmbedMode ? "mt-3 text-2xl font-semibold tracking-tight sm:text-3xl" : "mt-4 text-3xl font-semibold tracking-tight md:text-4xl"}>
@@ -538,7 +546,7 @@ function QuotePageContent() {
 
             <div className={statusBodyClassName}>
               <div className={isEmbedMode ? "rounded-[24px] border border-amber-300/20 bg-gradient-to-br from-amber-300/12 via-white/[0.03] to-transparent p-4 sm:p-5" : "rounded-[26px] border border-amber-300/20 bg-gradient-to-br from-amber-300/12 via-white/[0.03] to-transparent p-6"}>
-                <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-amber-200/90">
+                <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-amber-700">
                   Estimated Range
                 </p>
                 <p className="mt-4">
@@ -570,7 +578,7 @@ function QuotePageContent() {
         <div className="mx-auto max-w-3xl fade-in-up">
           <section className="glass-panel overflow-hidden rounded-[28px] shadow-[0_20px_80px_rgba(0,0,0,0.35)]">
             <div className="border-b border-black/10 px-4 py-4 sm:px-6 sm:py-5">
-              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-rose-300">
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-rose-600">
                 Estimator Unavailable
               </p>
             </div>
@@ -589,6 +597,7 @@ function QuotePageContent() {
   return (
     <main className={pageMainClassName}>
       <div className={pageShellClassName}>
+        {!isEmbedMode ? (
         <header className={headerClassName}>
           <div className="inline-flex rounded-full border border-black/10 bg-white px-3 py-1 text-xs font-semibold uppercase tracking-[0.15em] text-slate-700">
             {headerEyebrow}
@@ -602,12 +611,11 @@ function QuotePageContent() {
             {headerDescription}
           </p>
 
-          <p className="mt-4 text-sm font-medium text-amber-200/90">
+          <p className="mt-4 text-sm font-medium text-amber-700">
             Pricing for {selectedContractor.name}
           </p>
-
-
         </header>
+        ) : null}
 
         <section className={sectionClassName}>
           <div className={contentGridClassName}>
@@ -629,12 +637,11 @@ function QuotePageContent() {
                 </label>
               </div>
 
+              {!isEmbedMode ? (
               <div>
-                {!isEmbedMode ? (
-                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
-                    Project Details
-                  </p>
-                ) : null}
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
+                  Project Details
+                </p>
                 <h2 className={isEmbedMode ? "text-xl font-semibold tracking-tight sm:text-2xl" : "mt-3 text-2xl font-semibold tracking-tight md:text-3xl"}>
                   {formIntroTitle}
                 </h2>
@@ -642,8 +649,9 @@ function QuotePageContent() {
                   {formIntroDescription}
                 </p>
               </div>
+              ) : null}
 
-              <div className={isEmbedMode ? "mt-6 grid gap-4 md:grid-cols-2" : "mt-8 grid gap-5 md:grid-cols-2"}>
+              <div className={isEmbedMode ? "grid gap-4 md:grid-cols-2" : "mt-8 grid gap-5 md:grid-cols-2"}>
                 <div className="md:col-span-2">
                   <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-slate-700">Full Name</label>
                   <input
@@ -655,7 +663,7 @@ function QuotePageContent() {
                     className={inputClass("customerName", customerName.trim().length > 0)}
                     placeholder="John Smith"
                   />
-                  {fieldErrors.customerName ? <p className="mt-2 text-xs text-rose-300">{fieldErrors.customerName}</p> : null}
+                  {fieldErrors.customerName ? <p className="mt-2 text-xs text-rose-600">{fieldErrors.customerName}</p> : null}
                 </div>
 
                 <div>
@@ -670,7 +678,7 @@ function QuotePageContent() {
                     className={inputClass("customerEmail", customerEmail.trim().length > 0)}
                     placeholder="john@email.com"
                   />
-                  {fieldErrors.customerEmail ? <p className="mt-2 text-xs text-rose-300">{fieldErrors.customerEmail}</p> : null}
+                  {fieldErrors.customerEmail ? <p className="mt-2 text-xs text-rose-600">{fieldErrors.customerEmail}</p> : null}
                 </div>
 
                 <div>
@@ -685,7 +693,7 @@ function QuotePageContent() {
                     className={inputClass("customerPhone", customerPhone.trim().length > 0)}
                     placeholder="(555) 555-5555"
                   />
-                  {fieldErrors.customerPhone ? <p className="mt-2 text-xs text-rose-300">{fieldErrors.customerPhone}</p> : null}
+                  {fieldErrors.customerPhone ? <p className="mt-2 text-xs text-rose-600">{fieldErrors.customerPhone}</p> : null}
                 </div>
 
                 <div className="grid gap-4 md:col-span-2 md:grid-cols-2">
@@ -703,7 +711,7 @@ function QuotePageContent() {
                       placeholder="123 Main St"
                       className={inputClass("streetAddress", streetAddress.trim().length > 0)}
                     />
-                    {fieldErrors.streetAddress ? <p className="mt-2 text-xs text-rose-300">{fieldErrors.streetAddress}</p> : null}
+                    {fieldErrors.streetAddress ? <p className="mt-2 text-xs text-rose-600">{fieldErrors.streetAddress}</p> : null}
                   </div>
 
                   <div>
@@ -718,7 +726,7 @@ function QuotePageContent() {
                       placeholder="Chesterfield"
                       className={inputClass("city", city.trim().length > 0)}
                     />
-                    {fieldErrors.city ? <p className="mt-2 text-xs text-rose-300">{fieldErrors.city}</p> : null}
+                    {fieldErrors.city ? <p className="mt-2 text-xs text-rose-600">{fieldErrors.city}</p> : null}
                   </div>
 
                   <div>
@@ -734,7 +742,7 @@ function QuotePageContent() {
                       className={inputClass("state", state.trim().length > 0)}
                       maxLength={2}
                     />
-                    {fieldErrors.state ? <p className="mt-2 text-xs text-rose-300">{fieldErrors.state}</p> : null}
+                    {fieldErrors.state ? <p className="mt-2 text-xs text-rose-600">{fieldErrors.state}</p> : null}
                   </div>
 
                   <div>
@@ -750,7 +758,7 @@ function QuotePageContent() {
                       className={inputClass("zip", zip.trim().length > 0)}
                       inputMode="numeric"
                     />
-                    {fieldErrors.zip ? <p className="mt-2 text-xs text-rose-300">{fieldErrors.zip}</p> : null}
+                    {fieldErrors.zip ? <p className="mt-2 text-xs text-rose-600">{fieldErrors.zip}</p> : null}
                   </div>
                 </div>
 
@@ -857,7 +865,7 @@ function QuotePageContent() {
                     }}
                     className={inputClass("linearFeet", linearFeet > 0)}
                   />
-                  {fieldErrors.linearFeet ? <p className="mt-2 text-xs text-rose-300">{fieldErrors.linearFeet}</p> : null}
+                  {fieldErrors.linearFeet ? <p className="mt-2 text-xs text-rose-600">{fieldErrors.linearFeet}</p> : null}
                 </div>
 
                 <div>
@@ -871,7 +879,7 @@ function QuotePageContent() {
                     }}
                     className={inputClass("gates", gates >= 0)}
                   />
-                  {fieldErrors.gates ? <p className="mt-2 text-xs text-rose-300">{fieldErrors.gates}</p> : null}
+                  {fieldErrors.gates ? <p className="mt-2 text-xs text-rose-600">{fieldErrors.gates}</p> : null}
                 </div>
 
                 <div className="md:col-span-2">
@@ -888,13 +896,13 @@ function QuotePageContent() {
               </div>
 
               {error ? (
-                <div className="mt-6 rounded-2xl border border-rose-400/25 bg-rose-400/10 px-4 py-3 text-sm text-rose-200">
+                <div className="mt-6 rounded-2xl border border-rose-400/25 bg-rose-400/10 px-4 py-3 text-sm text-rose-700">
                   {error}
                 </div>
               ) : null}
 
               {!error && pricingError ? (
-                <div className="mt-6 rounded-2xl border border-amber-300/25 bg-amber-300/10 px-4 py-3 text-sm text-amber-100">
+                <div className="mt-6 rounded-2xl border border-amber-300/25 bg-amber-300/10 px-4 py-3 text-sm text-amber-800">
                   {pricingError}
                 </div>
               ) : null}
@@ -936,14 +944,17 @@ function QuotePageContent() {
                         : "Get My Estimate"}
                   </button>
 
-                  <p className="text-sm text-slate-700">
-                    Your range appears immediately after successful submission.
-                  </p>
+                  {!isEmbedMode ? (
+                    <p className="text-sm text-slate-700">
+                      Your range appears immediately after successful submission.
+                    </p>
+                  ) : null}
                 </div>
               </div>
             </form>
 
-            <aside className={isEmbedMode ? "space-y-4" : "space-y-5"}>
+            {!isEmbedMode ? (
+            <aside className="space-y-5">
               <div className={isEmbedMode ? "rounded-3xl border border-black/10 bg-slate-50 p-4 sm:p-5" : "rounded-3xl border border-black/10 bg-slate-50 p-6"}>
                 <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
                   {isEmbedMode ? "Live Summary" : "Current Inputs"}
@@ -975,6 +986,7 @@ function QuotePageContent() {
                 </ol>
               </div>
             </aside>
+            ) : null}
           </div>
         </section>
       </div>
