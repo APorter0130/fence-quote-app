@@ -58,6 +58,12 @@ function QuotePageContent() {
   const [searchTrigger, setSearchTrigger] = useState(0);
 
   const [submitted, setSubmitted] = useState(false);
+  // Anti-spam honeypot: hidden from people, often filled in by bots.
+  const [honeypot, setHoneypot] = useState("");
+  // The range the server calculated and saved; shown on the confirmation screen.
+  const [serverEstimate, setServerEstimate] = useState<{ low: number; high: number } | null>(null);
+  // True only when the server confirms the homeowner confirmation email was actually sent.
+  const [confirmationSent, setConfirmationSent] = useState(false);
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isEmbedded, setIsEmbedded] = useState(false);
@@ -111,11 +117,11 @@ function QuotePageContent() {
   const headerEyebrow = isEmbedMode ? "Fence Estimate" : "Instant Fence Estimator";
   const headerTitle = isEmbedMode ? "Get a quick project range" : "Request Your Fence Estimate";
   const headerDescription = isEmbedMode
-    ? "Submit project details and see a preliminary range without leaving the contractor site."
+    ? "Tell us about your project and get a preliminary price range in seconds."
     : "Share your project details and unlock a preliminary pricing range the moment you submit.";
   const formIntroTitle = isEmbedMode ? "Project details" : "Tell us about your project";
   const formIntroDescription = isEmbedMode
-    ? "Complete the fields below to route the request and generate an estimate."
+    ? "Fill in the details below to get your estimate."
     : "Fill out all fields below to generate your estimate and submit your request.";
   const statusShellClassName = isEmbedMode ? "mx-auto max-w-3xl fade-in-up" : "mx-auto max-w-4xl fade-in-up";
   const statusSectionClassName = isEmbedMode
@@ -430,7 +436,7 @@ function QuotePageContent() {
       const res = await fetch("/api/quotes/submit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+        body: JSON.stringify({ ...payload, website: honeypot }),
       });
 
       const json = await res.json();
@@ -439,6 +445,16 @@ function QuotePageContent() {
         setError(json?.error || "Something went wrong saving your quote.");
         return;
       }
+
+      if (
+        json?.estimate &&
+        typeof json.estimate.low === "number" &&
+        typeof json.estimate.high === "number"
+      ) {
+        setServerEstimate({ low: json.estimate.low, high: json.estimate.high });
+      }
+
+      setConfirmationSent(json?.confirmation_sent === true);
 
       setSubmitted(true);
     } catch (submitError) {
@@ -462,12 +478,10 @@ function QuotePageContent() {
                 Loading
               </div>
               <h1 className={isEmbedMode ? "mt-3 text-2xl font-semibold tracking-tight sm:text-3xl" : "mt-4 text-3xl font-semibold tracking-tight md:text-4xl"}>
-                Loading contractor configuration
+                Loading your estimate form
               </h1>
               <p className={isEmbedMode ? "mt-2 max-w-2xl text-sm leading-6 text-slate-700" : "mt-3 max-w-2xl text-sm leading-7 text-slate-700 md:text-base"}>
-                {isEmbedMode
-                  ? "Resolving the contractor tied to this embedded quote form."
-                  : "This quote form is resolving the contractor tied to your embed link."}
+                One moment while we get things ready.
               </p>
             </div>
           </section>
@@ -483,21 +497,19 @@ function QuotePageContent() {
           <section className={statusSectionClassName}>
             <div className={`${statusHeaderClassName} bg-gradient-to-r from-rose-300/15 via-transparent to-transparent`}>
               <div className="inline-flex rounded-full border border-rose-300/40 bg-rose-300/15 px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-rose-200">
-                Invalid Quote Link
+                Link Not Active
               </div>
               <h1 className={isEmbedMode ? "mt-3 text-2xl font-semibold tracking-tight sm:text-3xl" : "mt-4 text-3xl font-semibold tracking-tight md:text-4xl"}>
-                This contractor link could not be resolved
+                This estimate link isn&apos;t working
               </h1>
               <p className={isEmbedMode ? "mt-2 max-w-2xl text-sm leading-6 text-slate-700" : "mt-3 max-w-2xl text-sm leading-7 text-slate-700 md:text-base"}>
-                Use a valid contractor identifier in the quote URL, for example
-                <span className="font-medium text-slate-900"> ?contractor=aj-fence</span>
-                or the contractor UUID.
+                Please contact the company that shared this link and ask for an updated one.
               </p>
             </div>
 
             <div className={`${statusBodyClassName} text-sm leading-7 text-slate-700`}>
               <p>
-                {contractorError || "The form is intentionally blocked here so submissions are not attached to the wrong contractor."}
+                We couldn&apos;t match this link to an active company, so the form is turned off and nothing has been submitted.
               </p>
             </div>
           </section>
@@ -516,14 +528,11 @@ function QuotePageContent() {
                 Estimate Ready
               </div>
               <h1 className={isEmbedMode ? "mt-3 text-2xl font-semibold tracking-tight sm:text-3xl" : "mt-4 text-3xl font-semibold tracking-tight md:text-4xl"}>
-                Your preliminary range is unlocked
+                Here&apos;s your preliminary range
               </h1>
               <p className={isEmbedMode ? "mt-2 max-w-2xl text-sm leading-6 text-slate-700" : "mt-3 max-w-2xl text-sm leading-7 text-slate-700 md:text-base"}>
-                Thanks, {customerName}. Your request is in the contractor dashboard,
-                and your current projected range is below.
-              </p>
-              <p className="mt-3 text-xs font-semibold uppercase tracking-[0.14em] text-amber-200/80">
-                Routed to {selectedContractor.name}
+                Thanks, {customerName}. Your request was sent to {selectedContractor.name}.
+                {confirmationSent ? ` We also emailed a copy of your estimate to ${customerEmail}.` : ""}
               </p>
             </div>
 
@@ -534,7 +543,7 @@ function QuotePageContent() {
                 </p>
                 <p className="mt-4">
                   <span className={isEmbedMode ? "inline-flex rounded-2xl border border-amber-200/20 bg-amber-200/10 px-3 py-2 text-2xl font-extrabold leading-tight tracking-tight text-slate-900 drop-shadow-[0_8px_24px_rgba(245,158,11,0.32)] sm:text-3xl" : "inline-flex rounded-2xl border border-amber-200/20 bg-amber-200/10 px-4 py-2 text-4xl font-extrabold tracking-tight leading-none text-slate-900 drop-shadow-[0_8px_24px_rgba(245,158,11,0.32)] md:text-6xl"}>
-                    ${estimate.lowEstimate.toLocaleString()} &ndash; ${estimate.highEstimate.toLocaleString()}
+                    ${(serverEstimate?.low ?? estimate.lowEstimate).toLocaleString()} &ndash; ${(serverEstimate?.high ?? estimate.highEstimate).toLocaleString()}
                   </span>
                 </p>
                 <p className={isEmbedMode ? "mt-3 max-w-2xl text-sm leading-6 text-slate-700" : "mt-4 max-w-2xl text-sm leading-7 text-slate-700"}>
@@ -545,17 +554,9 @@ function QuotePageContent() {
                 </p>
               </div>
 
-              <div className={isEmbedMode ? "mt-5 flex flex-col items-start gap-3 sm:flex-row sm:items-center" : "mt-8 flex flex-wrap items-center gap-3"}>
-                <button
-                  onClick={() => setSubmitted(false)}
-                  className="inline-flex items-center justify-center rounded-2xl border border-black/20 bg-white px-5 py-3 text-sm font-semibold text-slate-900 transition hover:bg-white/[0.10]"
-                >
-                  Edit Submission
-                </button>
-                <span className="text-sm text-slate-500">
-                  {selectedContractor.name} can now review your details and contact you.
-                </span>
-              </div>
+              <p className={isEmbedMode ? "mt-5 text-sm text-slate-600" : "mt-8 text-sm text-slate-600"}>
+                {selectedContractor.name} will review your details and contact you soon.
+              </p>
             </div>
           </section>
         </div>
@@ -570,11 +571,14 @@ function QuotePageContent() {
           <section className="glass-panel overflow-hidden rounded-[28px] shadow-[0_20px_80px_rgba(0,0,0,0.35)]">
             <div className="border-b border-black/10 px-4 py-4 sm:px-6 sm:py-5">
               <p className="text-xs font-semibold uppercase tracking-[0.16em] text-rose-300">
-                Embed Access Blocked
+                Estimator Unavailable
               </p>
             </div>
             <div className="px-4 py-5 sm:px-6 sm:py-6">
-              <p className="text-sm text-slate-700">{embedAccessError}</p>
+              <p className="text-sm text-slate-700">
+                This estimator isn&apos;t available on this page. Please contact the business directly.
+              </p>
+              <p className="mt-3 text-xs text-slate-500">Details for the site owner: {embedAccessError}</p>
             </div>
           </section>
         </div>
@@ -608,6 +612,23 @@ function QuotePageContent() {
         <section className={sectionClassName}>
           <div className={contentGridClassName}>
             <form onSubmit={handleSubmit}>
+              <div
+                aria-hidden="true"
+                style={{ position: "absolute", left: "-10000px", width: 1, height: 1, overflow: "hidden" }}
+              >
+                <label>
+                  Website
+                  <input
+                    type="text"
+                    name="website"
+                    tabIndex={-1}
+                    autoComplete="off"
+                    value={honeypot}
+                    onChange={(e) => setHoneypot(e.target.value)}
+                  />
+                </label>
+              </div>
+
               <div>
                 {!isEmbedMode ? (
                   <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
@@ -937,27 +958,22 @@ function QuotePageContent() {
                 </div>
               </div>
 
-              {!isEmbedMode ? (
-                <div className="rounded-3xl border border-black/10 bg-slate-50 p-6">
-                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
-                    What Happens Next
-                  </p>
-                  <ol className="mt-3 list-decimal space-y-2 pl-5 text-sm leading-6 text-slate-700">
-                    <li>Your request is saved to the contractor dashboard.</li>
-                    <li>A contractor reviews scope and site details.</li>
-                    <li>You receive final follow-up for verified pricing.</li>
-                  </ol>
-                </div>
-              ) : (
-                <div className="rounded-3xl border border-amber-300/20 bg-gradient-to-br from-amber-300/12 via-white/[0.03] to-transparent p-4 sm:p-5">
-                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-amber-100/80">
-                    Embed Mode
-                  </p>
-                  <p className="mt-3 text-sm leading-6 text-slate-700">
-                    This widget is trimmed for embedded use and will post height updates to the host page as the map, validation, and estimate states expand or collapse.
-                  </p>
-                </div>
-              )}
+              <div
+                className={
+                  isEmbedMode
+                    ? "rounded-3xl border border-black/10 bg-slate-50 p-4 sm:p-5"
+                    : "rounded-3xl border border-black/10 bg-slate-50 p-6"
+                }
+              >
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
+                  What Happens Next
+                </p>
+                <ol className="mt-3 list-decimal space-y-2 pl-5 text-sm leading-6 text-slate-700">
+                  <li>You see your preliminary price range right away.</li>
+                  <li>{selectedContractor.name} reviews your project details.</li>
+                  <li>They contact you to confirm pricing and schedule a site visit.</li>
+                </ol>
+              </div>
             </aside>
           </div>
         </section>

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { contractors, type Contractor } from "../data/contractors";
+import type { Contractor } from "../data/contractors";
 import { resolveContractor } from "./contractors";
 import {
   getContractorPricing,
@@ -22,10 +22,11 @@ export function useContractorConfig(
   fenceType: FenceType,
   fenceHeight: FenceHeight
 ): UseContractorConfigResult {
-  const [contractor, setContractor] = useState<Contractor | null>(contractors[0]);
+  // Start empty and "loading" so a visitor never sees another company's form flash by first.
+  const [contractor, setContractor] = useState<Contractor | null>(null);
   const [pricing, setPricing] = useState<ContractorPricingRow | null>(null);
   const [pricingOptions, setPricingOptions] = useState<ContractorPricingOption[]>([]);
-  const [isContractorLoading, setIsContractorLoading] = useState(false);
+  const [isContractorLoading, setIsContractorLoading] = useState(true);
   const [isPricingLoading, setIsPricingLoading] = useState(false);
   const [isPricingOptionsLoading, setIsPricingOptionsLoading] = useState(false);
   const [error, setError] = useState("");

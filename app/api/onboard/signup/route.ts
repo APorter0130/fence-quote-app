@@ -1,10 +1,36 @@
 import { NextRequest, NextResponse } from "next/server";
-import { supabase } from "../../../../lib/supabase";
-import { randomBytes } from "crypto";
+import { supabaseAdmin as supabase } from "../../../../lib/supabase-admin";
+import { clientIp, rateLimit } from "../../../../lib/rate-limit";
+import { createHash, randomBytes, timingSafeEqual } from "crypto";
 
 const SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
+/** Signup is invite-only: the code lives in the SIGNUP_INVITE_CODE environment variable. */
+function inviteCodeMatches(input: unknown): boolean {
+  const expected = process.env.SIGNUP_INVITE_CODE?.trim();
+
+  if (!expected || typeof input !== "string") {
+    return false;
+  }
+
+  const a = createHash("sha256").update(input.trim()).digest();
+  const b = createHash("sha256").update(expected).digest();
+
+  return timingSafeEqual(a, b);
+}
+
 export async function POST(req: NextRequest) {
+  if (!process.env.SIGNUP_INVITE_CODE?.trim()) {
+    return NextResponse.json({ error: "Signups are currently closed." }, { status: 403 });
+  }
+
+  if (!rateLimit(`signup:${clientIp(req)}`, 10, 60 * 60 * 1000)) {
+    return NextResponse.json(
+      { error: "Too many attempts. Please try again later." },
+      { status: 429 }
+    );
+  }
+
   let body: unknown;
   try {
     body = await req.json();
@@ -16,7 +42,11 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Invalid request body." }, { status: 400 });
   }
 
-  const { company_name, email, phone, slug } = body as Record<string, unknown>;
+  const { company_name, email, phone, slug, invite_code } = body as Record<string, unknown>;
+
+  if (!inviteCodeMatches(invite_code)) {
+    return NextResponse.json({ error: "That invite code isn't valid." }, { status: 403 });
+  }
 
   if (typeof company_name !== "string" || !company_name.trim()) {
     return NextResponse.json({ error: "Company name is required." }, { status: 400 });

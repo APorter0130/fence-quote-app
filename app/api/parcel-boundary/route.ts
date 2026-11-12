@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { clientIp, rateLimit } from "../../../lib/rate-limit";
 
 type RegridFeature = {
   type: "Feature";
@@ -35,8 +36,6 @@ async function fetchRegridPoint(
   });
 
   const text = await response.text();
-  console.log("Regrid status:", response.status);
-  console.log("Regrid raw response:", text.slice(0, 500));
 
   if (!response.ok) {
     return {
@@ -58,6 +57,11 @@ async function fetchRegridPoint(
 }
 
 export async function GET(req: NextRequest) {
+  // Each lookup costs money on the parcel-data account, so cap how often one visitor can call it.
+  if (!rateLimit(`parcel:${clientIp(req)}`, 40, 10 * 60 * 1000)) {
+    return NextResponse.json({ error: "Too many lookups. Please try again shortly." }, { status: 429 });
+  }
+
   const lat = req.nextUrl.searchParams.get("lat");
   const lon = req.nextUrl.searchParams.get("lon");
   const radiusParam = req.nextUrl.searchParams.get("radius") ?? "25";

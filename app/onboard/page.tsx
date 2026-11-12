@@ -22,6 +22,7 @@ export default function OnboardPage() {
   const [companyName, setCompanyName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
+  const [inviteCode, setInviteCode] = useState("");
   const [slug, setSlug] = useState("");
   const [slugManuallyEdited, setSlugManuallyEdited] = useState(false);
   const [slugState, setSlugState] = useState<SlugState>("idle");
@@ -119,7 +120,13 @@ export default function OnboardPage() {
       const res = await fetch("/api/onboard/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ company_name: companyName, email, phone, slug }),
+        body: JSON.stringify({
+          company_name: companyName,
+          email,
+          phone,
+          slug,
+          invite_code: inviteCode,
+        }),
       });
 
       const data = (await res.json()) as { setupUrl?: string; error?: string };
@@ -145,7 +152,7 @@ export default function OnboardPage() {
             href="/"
             className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500 transition hover:text-slate-900"
           >
-            <- Back
+            &larr; Back
           </Link>
           <h1 className="mt-6 text-4xl font-semibold tracking-tight">
             Set up your contractor account
@@ -195,6 +202,20 @@ export default function OnboardPage() {
                 onChange={(e) => setPhone(formatPhone(e.target.value))}
                 className={inputClass(phone.trim().length > 0)}
                 placeholder="(555) 555-5555"
+                required
+              />
+            </div>
+
+            <div>
+              <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-slate-700">
+                Invite Code
+              </label>
+              <input
+                value={inviteCode}
+                onChange={(e) => setInviteCode(e.target.value)}
+                className={inputClass(inviteCode.trim().length > 0)}
+                placeholder="Enter the code you were given"
+                autoComplete="off"
                 required
               />
             </div>

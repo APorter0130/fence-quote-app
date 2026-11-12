@@ -27,8 +27,9 @@ function mapRowToContractor(row: ContractorRow, identifier: string): Contractor 
 export async function resolveContractor(identifier: string) {
   const normalizedIdentifier = identifier.trim().toLowerCase();
 
+  // No contractor in the link: never fall back to a hard-coded company.
   if (!normalizedIdentifier) {
-    return contractors[0];
+    return null;
   }
 
   const query = supabase

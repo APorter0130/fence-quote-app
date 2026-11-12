@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { supabase } from "../../../../../lib/supabase";
+import { supabaseAdmin as supabase } from "../../../../../lib/supabase-admin";
 import { FENCE_HEIGHTS, FENCE_TYPES } from "../../../../../types/quote";
 import type { FenceHeight, FenceType } from "../../../../../types/quote";
 
