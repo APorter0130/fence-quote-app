@@ -444,7 +444,7 @@ function OnboardSetupPageContent() {
               href="/onboard"
               className="mt-6 inline-block text-sm text-amber-300 hover:underline"
             >
-              Start over ->
+              Start over &rarr;
             </Link>
           </div>
         </div>
