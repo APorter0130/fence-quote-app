@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, Suspense, useEffect, useMemo, useState } from "react";
+import { CSSProperties, FormEvent, Suspense, useEffect, useMemo, useState } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 import FenceDrawMap from "../../components/fence-draw-map";
 import {
@@ -31,6 +31,22 @@ type FieldKey =
   | "linearFeet"
   | "gates";
 
+const DEFAULT_ACCENT = "#1F6B4A";
+
+function isHexColor(value: string) {
+  return /^#[0-9a-fA-F]{6}$/.test(value);
+}
+
+// Pick dark or white text so a contractor's brand color never makes the button unreadable.
+function readableTextOn(hex: string) {
+  const r = parseInt(hex.slice(1, 3), 16) / 255;
+  const g = parseInt(hex.slice(3, 5), 16) / 255;
+  const b = parseInt(hex.slice(5, 7), 16) / 255;
+  const lin = (c: number) => (c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4));
+  const luminance = 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b);
+  return luminance > 0.4 ? "#16201A" : "#FFFFFF";
+}
+
 function QuotePageContent() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -54,7 +70,7 @@ function QuotePageContent() {
   const [linearFeet, setLinearFeet] = useState(100);
   const [gates, setGates] = useState(1);
   const [tearOut, setTearOut] = useState(false);
-  const [showMap, setShowMap] = useState(false);
+  const [showMap] = useState(true);
   const [searchTrigger, setSearchTrigger] = useState(0);
 
   const [submitted, setSubmitted] = useState(false);
@@ -95,42 +111,23 @@ function QuotePageContent() {
   const isEmbedQueryMode = embedParam === "1" || embedParam === "true" || embedParam === "yes";
   const isEmbedMode = isEmbedded || isEmbedRoute || isEmbedQueryMode;
 
+  const accent = isHexColor(tenantPrimaryColor) ? tenantPrimaryColor : DEFAULT_ACCENT;
+  const onAccent = readableTextOn(accent);
+  const themeStyle = { "--accent": accent, "--on-accent": onAccent } as CSSProperties;
+
   const pageMainClassName = isEmbedMode
-    ? "bg-transparent px-1 py-2 text-slate-900 sm:px-2 sm:py-3"
-    : "min-h-screen px-4 py-10 text-slate-900";
-
-  const pageShellClassName = isEmbedMode ? "mx-auto max-w-4xl fade-in-up" : "mx-auto max-w-6xl fade-in-up";
-
-  const sectionClassName = isEmbedMode
-    ? "p-0"
-    : "glass-panel rounded-[32px] p-6 shadow-[0_20px_80px_rgba(0,0,0,0.35)] md:p-8";
-
-  const contentGridClassName = isEmbedMode
-    ? "grid gap-5"
-    : "grid gap-8 lg:grid-cols-[1.2fr_0.8fr]";
-
-  const stickySubmitClassName = isEmbedMode
-    ? "mt-8 rounded-2xl border border-black/10 bg-white p-3 backdrop-blur"
-    : "sticky bottom-3 mt-8 rounded-2xl border border-black/10 bg-white p-3 backdrop-blur md:static md:border-0 md:bg-transparent md:p-0";
-
-  const headerClassName = isEmbedMode ? "mb-5" : "mb-8";
-  const headerEyebrow = isEmbedMode ? "Fence Estimate" : "Instant Fence Estimator";
-  const headerTitle = isEmbedMode ? "Get a quick project range" : "Request Your Fence Estimate";
-  const headerDescription = isEmbedMode
-    ? "Tell us about your project and get a preliminary price range in seconds."
-    : "Share your project details and unlock a preliminary pricing range the moment you submit.";
-  const formIntroTitle = isEmbedMode ? "Project details" : "Tell us about your project";
-  const formIntroDescription = isEmbedMode
-    ? "Fill in the details below to get your estimate."
-    : "Fill out all fields below to generate your estimate and submit your request.";
-  const statusShellClassName = isEmbedMode ? "mx-auto max-w-3xl fade-in-up" : "mx-auto max-w-4xl fade-in-up";
-  const statusSectionClassName = isEmbedMode
-    ? "overflow-hidden rounded-2xl border border-black/10 bg-white"
-    : "glass-panel overflow-hidden rounded-[32px] shadow-[0_20px_80px_rgba(0,0,0,0.35)]";
-  const statusHeaderClassName = isEmbedMode
-    ? "border-b border-black/10 px-4 py-4 sm:px-6 sm:py-5"
-    : "border-b border-black/10 px-6 py-6 md:px-10";
-  const statusBodyClassName = isEmbedMode ? "px-4 py-5 sm:px-6 sm:py-6" : "px-6 py-8 md:px-10";
+    ? "bg-transparent px-1 py-2 text-[#16201A] sm:px-2 sm:py-3"
+    : "min-h-screen px-4 py-10 text-[#16201A]";
+  const pageShellClassName = "mx-auto max-w-3xl fade-in-up";
+  const sectionClassName = "rounded-2xl border border-[#E3E6E1] bg-white p-5 sm:p-8";
+  const headerClassName = "mb-6";
+  const headerTitle = "Request Your Fence Estimate";
+  const headerDescription =
+    "Trace your fence on the map, choose your style, and get a price range the moment you submit.";
+  const statusShellClassName = "mx-auto max-w-3xl fade-in-up";
+  const statusSectionClassName = "overflow-hidden rounded-2xl border border-[#E3E6E1] bg-white";
+  const statusHeaderClassName = "border-b border-[#E3E6E1] px-5 py-5 sm:px-8";
+  const statusBodyClassName = "px-5 py-6 sm:px-8";
 
   useEffect(() => {
     try {
@@ -333,20 +330,39 @@ function QuotePageContent() {
     });
   }
 
-  function inputClass(field: FieldKey, hasValue: boolean) {
+  const labelClass = "mb-1.5 block text-[13px] font-medium text-[#4B574F]";
+
+  function inputClass(field: FieldKey, _hasValue?: boolean) {
+    const base =
+      "h-11 w-full rounded-[10px] border bg-white px-3.5 text-[15px] text-[#16201A] placeholder:text-[#6B766F] outline-none transition focus:ring-1";
     if (fieldErrors[field]) {
-      return "w-full rounded-2xl border border-rose-400/65 bg-white px-4 py-3.5 text-[15px] text-slate-900 placeholder:text-slate-500 outline-none transition duration-200 focus:border-rose-300 focus:ring-4 focus:ring-rose-400/10";
+      return `${base} border-rose-500 focus:border-rose-500 focus:ring-rose-500`;
     }
-
-    if (hasValue) {
-      return "w-full rounded-2xl border border-emerald-300/45 bg-white px-4 py-3.5 text-[15px] text-slate-900 placeholder:text-slate-500 outline-none transition duration-200 focus:border-amber-300 focus:ring-4 focus:ring-amber-400/10";
-    }
-
-    return "w-full rounded-2xl border border-black/10 bg-white px-4 py-3.5 text-[15px] text-slate-900 placeholder:text-slate-500 outline-none transition duration-200 focus:border-amber-400/70 focus:ring-4 focus:ring-amber-400/10";
+    return `${base} border-[#CBD2CC] focus:border-[color:var(--accent)] focus:ring-[color:var(--accent)]`;
   }
 
-  function selectClass() {
-    return "w-full cursor-pointer rounded-2xl border border-black/10 bg-white px-4 py-3.5 text-[15px] text-slate-900 outline-none transition duration-200 hover:bg-slate-100 focus:border-amber-400/70 focus:ring-4 focus:ring-amber-400/10";
+  function choiceClass(selected: boolean) {
+    const base =
+      "h-11 rounded-[10px] bg-white px-2 text-sm text-[#16201A] transition disabled:cursor-not-allowed disabled:opacity-40";
+    return selected
+      ? `${base} border-2 border-[color:var(--accent)] font-semibold`
+      : `${base} border border-[#CBD2CC] font-medium hover:bg-[#F6F7F5]`;
+  }
+
+  function stepHeader(n: number, title: string) {
+    return (
+      <div className="flex items-center gap-2.5">
+        <span className="flex h-[26px] w-[26px] items-center justify-center rounded-full bg-[color:var(--accent)] text-[13px] font-semibold text-[color:var(--on-accent)]">
+          {n}
+        </span>
+        <h2 className="text-base font-semibold">{title}</h2>
+      </div>
+    );
+  }
+
+  function gradeLabel(value: YardGrade) {
+    if (value === "moderate") return "Some slope";
+    return formatYardGrade(value);
   }
 
   function formatPhoneNumber(raw: string): string {
@@ -470,7 +486,7 @@ function QuotePageContent() {
 
   if (isContractorLoading && isEmbedMode) {
     return (
-      <main className={pageMainClassName}>
+      <main className={pageMainClassName} style={themeStyle}>
         <p className="py-10 text-center text-sm text-slate-500">Loading&hellip;</p>
       </main>
     );
@@ -478,10 +494,10 @@ function QuotePageContent() {
 
   if (isContractorLoading) {
     return (
-      <main className={pageMainClassName}>
+      <main className={pageMainClassName} style={themeStyle}>
         <div className={statusShellClassName}>
           <section className={statusSectionClassName}>
-            <div className={`${statusHeaderClassName} bg-gradient-to-r from-amber-300/15 via-transparent to-transparent`}>
+            <div className={statusHeaderClassName}>
               <div className="inline-flex rounded-full border border-amber-300/40 bg-amber-300/15 px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-amber-700">
                 Loading
               </div>
@@ -500,10 +516,10 @@ function QuotePageContent() {
 
   if (!selectedContractor) {
     return (
-      <main className={pageMainClassName}>
+      <main className={pageMainClassName} style={themeStyle}>
         <div className={statusShellClassName}>
           <section className={statusSectionClassName}>
-            <div className={`${statusHeaderClassName} bg-gradient-to-r from-rose-300/15 via-transparent to-transparent`}>
+            <div className={statusHeaderClassName}>
               <div className="inline-flex rounded-full border border-rose-300/40 bg-rose-300/15 px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-rose-700">
                 Link Not Active
               </div>
@@ -527,45 +543,51 @@ function QuotePageContent() {
   }
 
   if (submitted && estimate) {
+    const low = serverEstimate?.low ?? estimate.lowEstimate;
+    const high = serverEstimate?.high ?? estimate.highEstimate;
     return (
-      <main className={pageMainClassName}>
+      <main className={pageMainClassName} style={themeStyle}>
         <div className={statusShellClassName}>
-          <section className={statusSectionClassName}>
-            <div className={`${statusHeaderClassName} bg-gradient-to-r from-emerald-300/15 via-transparent to-transparent`}>
-              <div className="inline-flex rounded-full border border-emerald-300/40 bg-emerald-300/15 px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-emerald-700">
-                Estimate Ready
-              </div>
-              <h1 className={isEmbedMode ? "mt-3 text-2xl font-semibold tracking-tight sm:text-3xl" : "mt-4 text-3xl font-semibold tracking-tight md:text-4xl"}>
-                Here&apos;s your preliminary range
-              </h1>
-              <p className={isEmbedMode ? "mt-2 max-w-2xl text-sm leading-6 text-slate-700" : "mt-3 max-w-2xl text-sm leading-7 text-slate-700 md:text-base"}>
-                Thanks, {customerName}. Your request was sent to {selectedContractor.name}.
-                {confirmationSent ? ` We also emailed a copy of your estimate to ${customerEmail}.` : ""}
-              </p>
-            </div>
+          <section className={`${statusSectionClassName} p-6 sm:p-8`}>
+            <span
+              className="inline-flex rounded-full px-3 py-1 text-xs font-semibold"
+              style={{ backgroundColor: `${accent}1A`, color: accent === DEFAULT_ACCENT ? accent : "#16201A" }}
+            >
+              Your estimate is ready
+            </span>
 
-            <div className={statusBodyClassName}>
-              <div className={isEmbedMode ? "rounded-[24px] border border-amber-300/20 bg-gradient-to-br from-amber-300/12 via-white/[0.03] to-transparent p-4 sm:p-5" : "rounded-[26px] border border-amber-300/20 bg-gradient-to-br from-amber-300/12 via-white/[0.03] to-transparent p-6"}>
-                <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-amber-700">
-                  Estimated Range
-                </p>
-                <p className="mt-4">
-                  <span className={isEmbedMode ? "inline-flex rounded-2xl border border-amber-200/20 bg-amber-200/10 px-3 py-2 text-2xl font-extrabold leading-tight tracking-tight text-slate-900 drop-shadow-[0_8px_24px_rgba(245,158,11,0.32)] sm:text-3xl" : "inline-flex rounded-2xl border border-amber-200/20 bg-amber-200/10 px-4 py-2 text-4xl font-extrabold tracking-tight leading-none text-slate-900 drop-shadow-[0_8px_24px_rgba(245,158,11,0.32)] md:text-6xl"}>
-                    ${(serverEstimate?.low ?? estimate.lowEstimate).toLocaleString()} &ndash; ${(serverEstimate?.high ?? estimate.highEstimate).toLocaleString()}
-                  </span>
-                </p>
-                <p className={isEmbedMode ? "mt-3 max-w-2xl text-sm leading-6 text-slate-700" : "mt-4 max-w-2xl text-sm leading-7 text-slate-700"}>
-                  This estimate is based on your selections and measured fence footage.
-                </p>
-                <p className="mt-3 text-xs leading-5 text-slate-500">
-                  Final pricing may vary based on layout, site access, removal needs, and other field conditions.
-                </p>
-              </div>
+            <p className="mt-5 text-[13px] font-medium text-[#4B574F]">Estimated range</p>
+            <p className="mt-1 text-4xl font-bold tracking-tight sm:text-5xl">
+              ${low.toLocaleString()} &ndash; ${high.toLocaleString()}
+            </p>
 
-              <p className={isEmbedMode ? "mt-5 text-sm text-slate-600" : "mt-8 text-sm text-slate-600"}>
-                {selectedContractor.name} will review your details and contact you soon.
-              </p>
-            </div>
+            <div className="my-6 h-px bg-[#E3E6E1]" />
+
+            <dl className="space-y-2 text-sm text-[#4B574F]">
+              <div className="flex justify-between">
+                <dt>Fence</dt>
+                <dd className="font-medium text-[#16201A]">
+                  {fenceHeight} ft {formatFenceType(fenceType).toLowerCase()}
+                </dd>
+              </div>
+              <div className="flex justify-between">
+                <dt>Length</dt>
+                <dd className="font-medium text-[#16201A]">{linearFeet} ft</dd>
+              </div>
+              <div className="flex justify-between">
+                <dt>Gates</dt>
+                <dd className="font-medium text-[#16201A]">{gates}</dd>
+              </div>
+            </dl>
+
+            <p className="mt-6 text-sm leading-6 text-[#4B574F]">
+              Thanks, {customerName}. {selectedContractor.name} has your request and will contact you to
+              confirm pricing and schedule a site visit.
+              {confirmationSent ? ` We also emailed a copy of this estimate to ${customerEmail}.` : ""}
+            </p>
+            <p className="mt-3 text-xs leading-5 text-[#6B766F]">
+              Final pricing may vary based on layout, site access, removal needs, and other field conditions.
+            </p>
           </section>
         </div>
       </main>
@@ -576,7 +598,7 @@ function QuotePageContent() {
     return (
       <main className="px-3 py-4 text-slate-900 sm:px-4 sm:py-6">
         <div className="mx-auto max-w-3xl fade-in-up">
-          <section className="glass-panel overflow-hidden rounded-[28px] shadow-[0_20px_80px_rgba(0,0,0,0.35)]">
+          <section className="overflow-hidden rounded-2xl border border-[#E3E6E1] bg-white">
             <div className="border-b border-black/10 px-4 py-4 sm:px-6 sm:py-5">
               <p className="text-xs font-semibold uppercase tracking-[0.16em] text-rose-600">
                 Estimator Unavailable
@@ -595,399 +617,345 @@ function QuotePageContent() {
   }
 
   return (
-    <main className={pageMainClassName}>
+    <main className={pageMainClassName} style={themeStyle}>
       <div className={pageShellClassName}>
         {!isEmbedMode ? (
-        <header className={headerClassName}>
-          <div className="inline-flex rounded-full border border-black/10 bg-white px-3 py-1 text-xs font-semibold uppercase tracking-[0.15em] text-slate-700">
-            {headerEyebrow}
-          </div>
-
-          <h1 className={isEmbedMode ? "mt-3 max-w-3xl text-3xl font-semibold tracking-tight sm:text-4xl" : "mt-4 max-w-4xl text-4xl font-semibold tracking-tight md:text-5xl"}>
-            {headerTitle}
-          </h1>
-
-          <p className={isEmbedMode ? "mt-3 max-w-2xl text-sm leading-7 text-slate-700 sm:text-base" : "mt-4 max-w-3xl text-base leading-8 text-slate-700"}>
-            {headerDescription}
-          </p>
-
-          <p className="mt-4 text-sm font-medium text-amber-700">
-            Pricing for {selectedContractor.name}
-          </p>
-        </header>
+          <header className={headerClassName}>
+            <h1 className="text-3xl font-semibold tracking-tight md:text-4xl">{headerTitle}</h1>
+            <p className="mt-3 max-w-2xl text-base leading-7 text-[#4B574F]">{headerDescription}</p>
+            <p className="mt-3 text-sm font-medium text-[#4B574F]">Pricing for {selectedContractor.name}</p>
+          </header>
         ) : null}
 
         <section className={sectionClassName}>
-          <div className={contentGridClassName}>
-            <form onSubmit={handleSubmit}>
-              <div
-                aria-hidden="true"
-                style={{ position: "absolute", left: "-10000px", width: 1, height: 1, overflow: "hidden" }}
-              >
-                <label>
-                  Website
+          <form onSubmit={handleSubmit} className="flex flex-col gap-8">
+            <div
+              aria-hidden="true"
+              style={{ position: "absolute", left: "-10000px", width: 1, height: 1, overflow: "hidden" }}
+            >
+              <label>
+                Website
+                <input
+                  type="text"
+                  name="website"
+                  tabIndex={-1}
+                  autoComplete="off"
+                  value={honeypot}
+                  onChange={(e) => setHoneypot(e.target.value)}
+                />
+              </label>
+            </div>
+
+            {/* 1. Property */}
+            <div className="flex flex-col gap-3">
+              {stepHeader(1, "Find your property")}
+              <div className="grid grid-cols-6 gap-3">
+                <div className="col-span-6">
+                  <label htmlFor="q-street" className={labelClass}>Street address</label>
                   <input
+                    id="q-street"
                     type="text"
-                    name="website"
-                    tabIndex={-1}
-                    autoComplete="off"
-                    value={honeypot}
-                    onChange={(e) => setHoneypot(e.target.value)}
+                    value={streetAddress}
+                    onChange={(e) => {
+                      setStreetAddress(e.target.value);
+                      clearFieldError("streetAddress");
+                    }}
+                    placeholder="123 Main St"
+                    className={inputClass("streetAddress")}
+                    autoComplete="address-line1"
                   />
-                </label>
-              </div>
+                  {fieldErrors.streetAddress ? <p className="mt-1.5 text-xs text-rose-600">{fieldErrors.streetAddress}</p> : null}
+                </div>
 
-              {!isEmbedMode ? (
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
-                  Project Details
-                </p>
-                <h2 className={isEmbedMode ? "text-xl font-semibold tracking-tight sm:text-2xl" : "mt-3 text-2xl font-semibold tracking-tight md:text-3xl"}>
-                  {formIntroTitle}
-                </h2>
-                <p className={isEmbedMode ? "mt-2 max-w-2xl text-sm leading-6 text-slate-700" : "mt-3 max-w-2xl text-sm leading-7 text-slate-700 md:text-base"}>
-                  {formIntroDescription}
-                </p>
-              </div>
-              ) : null}
-
-              <div className={isEmbedMode ? "grid gap-4 md:grid-cols-2" : "mt-8 grid gap-5 md:grid-cols-2"}>
-                <div className="md:col-span-2">
-                  <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-slate-700">Full Name</label>
+                <div className="col-span-6 sm:col-span-3">
+                  <label htmlFor="q-city" className={labelClass}>City</label>
                   <input
+                    id="q-city"
+                    type="text"
+                    value={city}
+                    onChange={(e) => {
+                      setCity(e.target.value);
+                      clearFieldError("city");
+                    }}
+                    placeholder="Chesterfield"
+                    className={inputClass("city")}
+                    autoComplete="address-level2"
+                  />
+                  {fieldErrors.city ? <p className="mt-1.5 text-xs text-rose-600">{fieldErrors.city}</p> : null}
+                </div>
+
+                <div className="col-span-2 sm:col-span-1">
+                  <label htmlFor="q-state" className={labelClass}>State</label>
+                  <input
+                    id="q-state"
+                    type="text"
+                    value={state}
+                    onChange={(e) => {
+                      setState(e.target.value.toUpperCase().slice(0, 2));
+                      clearFieldError("state");
+                    }}
+                    placeholder="MO"
+                    className={inputClass("state")}
+                    maxLength={2}
+                    autoComplete="address-level1"
+                  />
+                  {fieldErrors.state ? <p className="mt-1.5 text-xs text-rose-600">{fieldErrors.state}</p> : null}
+                </div>
+
+                <div className="col-span-4 sm:col-span-2">
+                  <label htmlFor="q-zip" className={labelClass}>ZIP</label>
+                  <input
+                    id="q-zip"
+                    type="text"
+                    value={zip}
+                    onChange={(e) => {
+                      setZip(e.target.value.replace(/\D/g, "").slice(0, 5));
+                      clearFieldError("zip");
+                    }}
+                    placeholder="63017"
+                    className={inputClass("zip")}
+                    inputMode="numeric"
+                    autoComplete="postal-code"
+                  />
+                  {fieldErrors.zip ? <p className="mt-1.5 text-xs text-rose-600">{fieldErrors.zip}</p> : null}
+                </div>
+              </div>
+
+              <button
+                type="button"
+                disabled={!canSearch}
+                onClick={() => setSearchTrigger((prev) => prev + 1)}
+                className="h-11 w-full rounded-[10px] border border-[#CBD2CC] bg-white text-sm font-medium text-[#16201A] transition hover:bg-[#F6F7F5] disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                Find my property on the map
+              </button>
+            </div>
+
+            {/* 2. Map */}
+            <div className="flex flex-col gap-3">
+              {stepHeader(2, "Tap the map to trace your fence")}
+              {showMap ? (
+                <div className="rounded-xl border border-[#E3E6E1] bg-[#F6F7F5] p-2 sm:p-3">
+                  <FenceDrawMap
+                    address={fullAddress}
+                    searchTrigger={searchTrigger}
+                    onDistanceChange={(feet) => {
+                      setLinearFeet(feet);
+                    }}
+                  />
+                </div>
+              ) : null}
+            </div>
+
+            {/* 3. Fence */}
+            <div className="flex flex-col gap-4">
+              {stepHeader(3, "Choose your fence")}
+
+              <div>
+                <span className={labelClass}>Style</span>
+                <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+                  {FENCE_TYPES.map((type) => (
+                    <button
+                      key={type}
+                      type="button"
+                      disabled={!availableFenceTypes.has(type)}
+                      aria-pressed={fenceType === type}
+                      onClick={() => setFenceType(type)}
+                      className={choiceClass(fenceType === type)}
+                    >
+                      {formatFenceType(type)}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <span className={labelClass}>Height</span>
+                  <div className="grid grid-cols-3 gap-2">
+                    {FENCE_HEIGHTS.map((height) => (
+                      <button
+                        key={height}
+                        type="button"
+                        disabled={!availableHeightsForFenceType.has(height)}
+                        aria-pressed={fenceHeight === height}
+                        onClick={() => setFenceHeight(height)}
+                        className={choiceClass(fenceHeight === height)}
+                      >
+                        {height} ft
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <span className={labelClass}>Yard slope</span>
+                  <div className="grid grid-cols-3 gap-2">
+                    {YARD_GRADES.map((grade) => (
+                      <button
+                        key={grade}
+                        type="button"
+                        aria-pressed={yardGrade === grade}
+                        onClick={() => setYardGrade(grade)}
+                        className={choiceClass(yardGrade === grade)}
+                      >
+                        {gradeLabel(grade)}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <label htmlFor="q-feet" className={labelClass}>Fence length (ft)</label>
+                  <input
+                    id="q-feet"
+                    type="number"
+                    min={0}
+                    value={linearFeet}
+                    onChange={(e) => {
+                      setLinearFeet(Number(e.target.value));
+                      clearFieldError("linearFeet");
+                    }}
+                    className={inputClass("linearFeet")}
+                  />
+                  <p className="mt-1.5 text-xs text-[#6B766F]">Filled in from the map. Adjust it if you need to.</p>
+                  {fieldErrors.linearFeet ? <p className="mt-1.5 text-xs text-rose-600">{fieldErrors.linearFeet}</p> : null}
+                </div>
+
+                <div>
+                  <span className={labelClass}>Gates</span>
+                  <div className="flex items-center gap-3">
+                    <button
+                      type="button"
+                      aria-label="Fewer gates"
+                      onClick={() => {
+                        setGates(Math.max(0, gates - 1));
+                        clearFieldError("gates");
+                      }}
+                      className="h-11 w-11 rounded-[10px] border border-[#CBD2CC] bg-white text-lg text-[#16201A] transition hover:bg-[#F6F7F5]"
+                    >
+                      &minus;
+                    </button>
+                    <span className="min-w-6 text-center text-base font-semibold" aria-live="polite">{gates}</span>
+                    <button
+                      type="button"
+                      aria-label="More gates"
+                      onClick={() => {
+                        setGates(gates + 1);
+                        clearFieldError("gates");
+                      }}
+                      className="h-11 w-11 rounded-[10px] border border-[#CBD2CC] bg-white text-lg text-[#16201A] transition hover:bg-[#F6F7F5]"
+                    >
+                      +
+                    </button>
+                  </div>
+                  {fieldErrors.gates ? <p className="mt-1.5 text-xs text-rose-600">{fieldErrors.gates}</p> : null}
+                </div>
+              </div>
+
+              <label className="flex cursor-pointer items-center gap-3 text-sm font-medium">
+                <input
+                  type="checkbox"
+                  checked={tearOut}
+                  onChange={(e) => setTearOut(e.target.checked)}
+                  className="h-5 w-5 accent-[color:var(--accent)]"
+                />
+                Remove my existing fence
+              </label>
+            </div>
+
+            {/* 4. Contact */}
+            <div className="flex flex-col gap-3">
+              {stepHeader(4, "Where should we send it?")}
+              <div className="grid gap-3 sm:grid-cols-3">
+                <div>
+                  <label htmlFor="q-name" className={labelClass}>Full name</label>
+                  <input
+                    id="q-name"
                     value={customerName}
                     onChange={(e) => {
                       setCustomerName(e.target.value);
                       clearFieldError("customerName");
                     }}
-                    className={inputClass("customerName", customerName.trim().length > 0)}
+                    className={inputClass("customerName")}
                     placeholder="John Smith"
+                    autoComplete="name"
                   />
-                  {fieldErrors.customerName ? <p className="mt-2 text-xs text-rose-600">{fieldErrors.customerName}</p> : null}
+                  {fieldErrors.customerName ? <p className="mt-1.5 text-xs text-rose-600">{fieldErrors.customerName}</p> : null}
                 </div>
 
                 <div>
-                  <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-slate-700">Email</label>
+                  <label htmlFor="q-email" className={labelClass}>Email</label>
                   <input
+                    id="q-email"
                     type="email"
                     value={customerEmail}
                     onChange={(e) => {
                       setCustomerEmail(e.target.value);
                       clearFieldError("customerEmail");
                     }}
-                    className={inputClass("customerEmail", customerEmail.trim().length > 0)}
+                    className={inputClass("customerEmail")}
                     placeholder="john@email.com"
+                    autoComplete="email"
                   />
-                  {fieldErrors.customerEmail ? <p className="mt-2 text-xs text-rose-600">{fieldErrors.customerEmail}</p> : null}
+                  {fieldErrors.customerEmail ? <p className="mt-1.5 text-xs text-rose-600">{fieldErrors.customerEmail}</p> : null}
                 </div>
 
                 <div>
-                  <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-slate-700">Phone</label>
+                  <label htmlFor="q-phone" className={labelClass}>Phone</label>
                   <input
+                    id="q-phone"
                     type="tel"
                     value={customerPhone}
                     onChange={(e) => {
                       setCustomerPhone(formatPhoneNumber(e.target.value));
                       clearFieldError("customerPhone");
                     }}
-                    className={inputClass("customerPhone", customerPhone.trim().length > 0)}
+                    className={inputClass("customerPhone")}
                     placeholder="(555) 555-5555"
+                    autoComplete="tel"
                   />
-                  {fieldErrors.customerPhone ? <p className="mt-2 text-xs text-rose-600">{fieldErrors.customerPhone}</p> : null}
-                </div>
-
-                <div className="grid gap-4 md:col-span-2 md:grid-cols-2">
-                  <div className="md:col-span-2">
-                    <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-slate-700">
-                      Street Address
-                    </label>
-                    <input
-                      type="text"
-                      value={streetAddress}
-                      onChange={(e) => {
-                        setStreetAddress(e.target.value);
-                        clearFieldError("streetAddress");
-                      }}
-                      placeholder="123 Main St"
-                      className={inputClass("streetAddress", streetAddress.trim().length > 0)}
-                    />
-                    {fieldErrors.streetAddress ? <p className="mt-2 text-xs text-rose-600">{fieldErrors.streetAddress}</p> : null}
-                  </div>
-
-                  <div>
-                    <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-slate-700">City</label>
-                    <input
-                      type="text"
-                      value={city}
-                      onChange={(e) => {
-                        setCity(e.target.value);
-                        clearFieldError("city");
-                      }}
-                      placeholder="Chesterfield"
-                      className={inputClass("city", city.trim().length > 0)}
-                    />
-                    {fieldErrors.city ? <p className="mt-2 text-xs text-rose-600">{fieldErrors.city}</p> : null}
-                  </div>
-
-                  <div>
-                    <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-slate-700">State</label>
-                    <input
-                      type="text"
-                      value={state}
-                      onChange={(e) => {
-                        setState(e.target.value.toUpperCase().slice(0, 2));
-                        clearFieldError("state");
-                      }}
-                      placeholder="MO"
-                      className={inputClass("state", state.trim().length > 0)}
-                      maxLength={2}
-                    />
-                    {fieldErrors.state ? <p className="mt-2 text-xs text-rose-600">{fieldErrors.state}</p> : null}
-                  </div>
-
-                  <div>
-                    <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-slate-700">ZIP Code</label>
-                    <input
-                      type="text"
-                      value={zip}
-                      onChange={(e) => {
-                        setZip(e.target.value.replace(/\D/g, "").slice(0, 5));
-                        clearFieldError("zip");
-                      }}
-                      placeholder="63017"
-                      className={inputClass("zip", zip.trim().length > 0)}
-                      inputMode="numeric"
-                    />
-                    {fieldErrors.zip ? <p className="mt-2 text-xs text-rose-600">{fieldErrors.zip}</p> : null}
-                  </div>
-                </div>
-
-                <div className="md:col-span-2 mt-4 flex gap-6">
-                  <button
-                    type="button"
-                    disabled={!canSearch}
-                    onClick={() => setSearchTrigger((prev) => prev + 1)}
-                    className="flex-1 rounded-2xl border border-black/10 bg-white px-4 py-3 text-sm font-medium text-slate-900 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50"
-                  >
-                    Find Address
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setShowMap((prev) => !prev)}
-                    className="flex-1 rounded-2xl border border-black/10 bg-white px-4 py-3 text-sm font-medium text-slate-900 transition hover:bg-slate-100"
-                  >
-                    {showMap ? "Hide Map" : "Open Map"}
-                  </button>
-                </div>
-
-                {showMap && (
-                  <div className="md:col-span-2">
-                    <div className="rounded-3xl border border-black/10 bg-slate-50 p-3 sm:p-4">
-                      <FenceDrawMap
-                        address={fullAddress}
-                        searchTrigger={searchTrigger}
-                        onDistanceChange={(feet) => {
-                          setLinearFeet(feet);
-                        }}
-                      />
-                    </div>
-                  </div>
-                )}
-
-                <div className="md:col-span-2 pb-1 pt-3">
-                  <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">Fence Specifications</p>
-                  <div className="mt-2 h-px bg-black/10" />
-                </div>
-
-                <div>
-                  <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-slate-700">Fence Type</label>
-                  <select
-                    value={fenceType}
-                    onChange={(e) => setFenceType(e.target.value as FenceType)}
-                    className={selectClass()}
-                  >
-                    {FENCE_TYPES.map((type) => (
-                      <option
-                        key={type}
-                        value={type}
-                        className="bg-white"
-                        disabled={!availableFenceTypes.has(type)}
-                      >
-                        {formatFenceType(type)}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-slate-700">Fence Height</label>
-                  <select
-                    value={fenceHeight}
-                    onChange={(e) => setFenceHeight(e.target.value as FenceHeight)}
-                    className={selectClass()}
-                  >
-                    {FENCE_HEIGHTS.map((height) => (
-                      <option
-                        key={height}
-                        value={height}
-                        className="bg-white"
-                        disabled={!availableHeightsForFenceType.has(height)}
-                      >
-                        {height} ft
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-slate-700">Yard Grade</label>
-                  <select
-                    value={yardGrade}
-                    onChange={(e) => setYardGrade(e.target.value as YardGrade)}
-                    className={selectClass()}
-                  >
-                    {YARD_GRADES.map((grade) => (
-                      <option key={grade} value={grade} className="bg-white">
-                        {grade === "moderate" ? "Moderate Slope" : formatYardGrade(grade)}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-slate-700">Linear Feet</label>
-                  <input
-                    type="number"
-                    value={linearFeet}
-                    onChange={(e) => {
-                      setLinearFeet(Number(e.target.value));
-                      clearFieldError("linearFeet");
-                    }}
-                    className={inputClass("linearFeet", linearFeet > 0)}
-                  />
-                  {fieldErrors.linearFeet ? <p className="mt-2 text-xs text-rose-600">{fieldErrors.linearFeet}</p> : null}
-                </div>
-
-                <div>
-                  <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-slate-700">Number of Gates</label>
-                  <input
-                    type="number"
-                    value={gates}
-                    onChange={(e) => {
-                      setGates(Number(e.target.value));
-                      clearFieldError("gates");
-                    }}
-                    className={inputClass("gates", gates >= 0)}
-                  />
-                  {fieldErrors.gates ? <p className="mt-2 text-xs text-rose-600">{fieldErrors.gates}</p> : null}
-                </div>
-
-                <div className="md:col-span-2">
-                  <label className="flex cursor-pointer items-center gap-3 rounded-2xl border border-black/10 bg-white px-4 py-4 text-sm text-slate-700 transition duration-200 hover:border-amber-400/25 hover:bg-amber-400/[0.05]">
-                    <input
-                      type="checkbox"
-                      checked={tearOut}
-                      onChange={(e) => setTearOut(e.target.checked)}
-                      className="h-4 w-4 accent-amber-400"
-                    />
-                    Include tear-out and removal of any existing fence
-                  </label>
+                  {fieldErrors.customerPhone ? <p className="mt-1.5 text-xs text-rose-600">{fieldErrors.customerPhone}</p> : null}
                 </div>
               </div>
 
               {error ? (
-                <div className="mt-6 rounded-2xl border border-rose-400/25 bg-rose-400/10 px-4 py-3 text-sm text-rose-700">
-                  {error}
-                </div>
+                <div className="rounded-xl border border-rose-300 bg-rose-50 px-4 py-3 text-sm text-rose-800">{error}</div>
               ) : null}
 
               {!error && pricingError ? (
-                <div className="mt-6 rounded-2xl border border-amber-300/25 bg-amber-300/10 px-4 py-3 text-sm text-amber-800">
-                  {pricingError}
-                </div>
+                <div className="rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900">{pricingError}</div>
               ) : null}
 
-              <div className={stickySubmitClassName}>
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-                  <button
-                    type="submit"
-                    disabled={
-                      isSubmitting ||
-                      isPricingLoading ||
-                      isEmbedAccessLoading ||
-                      !estimate ||
-                      estimate.unavailable
-                    }
-                    style={
-                      tenantPrimaryColor
-                        ? {
-                            backgroundImage: `linear-gradient(to right, ${tenantPrimaryColor}, ${
-                              tenantSecondaryColor || tenantPrimaryColor
-                            })`,
-                          }
-                        : undefined
-                    }
-                    className="inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-amber-400 to-amber-500 px-6 py-3.5 text-sm font-semibold text-slate-900 shadow-[0_4px_20px_rgba(245,158,11,0.28)] transition active:scale-[0.98] hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
-                  >
-                    {isSubmitting && (
-                      <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V4a10 10 0 00-10 10h4z" />
-                      </svg>
-                    )}
-                    {isSubmitting
-                      ? "Submitting..."
-                      : isEmbedAccessLoading
-                        ? "Validating Embed..."
-                      : isPricingLoading
-                        ? "Loading Pricing..."
-                        : "Get My Estimate"}
-                  </button>
-
-                  {!isEmbedMode ? (
-                    <p className="text-sm text-slate-700">
-                      Your range appears immediately after successful submission.
-                    </p>
-                  ) : null}
-                </div>
-              </div>
-            </form>
-
-            {!isEmbedMode ? (
-            <aside className="space-y-5">
-              <div className={isEmbedMode ? "rounded-3xl border border-black/10 bg-slate-50 p-4 sm:p-5" : "rounded-3xl border border-black/10 bg-slate-50 p-6"}>
-                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
-                  {isEmbedMode ? "Live Summary" : "Current Inputs"}
-                </p>
-                <div className="mt-4 space-y-2 text-sm text-slate-700">
-                  <p>Type: <span className="font-medium text-slate-900">{formatFenceType(fenceType)}</span></p>
-                  <p>Height: <span className="font-medium text-slate-900">{fenceHeight} ft</span></p>
-                  <p>Yard Grade: <span className="font-medium text-slate-900">{formatYardGrade(yardGrade)}</span></p>
-                  <p>Linear Feet: <span className="font-medium text-slate-900">{linearFeet}</span></p>
-                  <p>Gates: <span className="font-medium text-slate-900">{gates}</span></p>
-                  <p>Tear-out: <span className="font-medium text-slate-900">{tearOut ? "Yes" : "No"}</span></p>
-                </div>
-              </div>
-
-              <div
-                className={
-                  isEmbedMode
-                    ? "rounded-3xl border border-black/10 bg-slate-50 p-4 sm:p-5"
-                    : "rounded-3xl border border-black/10 bg-slate-50 p-6"
+              <button
+                type="submit"
+                disabled={
+                  isSubmitting ||
+                  isPricingLoading ||
+                  isEmbedAccessLoading ||
+                  !estimate ||
+                  estimate.unavailable
                 }
+                className="inline-flex h-[52px] w-full items-center justify-center gap-2 rounded-xl bg-[color:var(--accent)] text-base font-semibold text-[color:var(--on-accent)] transition hover:brightness-110 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60"
               >
-                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
-                  What Happens Next
-                </p>
-                <ol className="mt-3 list-decimal space-y-2 pl-5 text-sm leading-6 text-slate-700">
-                  <li>You see your preliminary price range right away.</li>
-                  <li>{selectedContractor.name} reviews your project details.</li>
-                  <li>They contact you to confirm pricing and schedule a site visit.</li>
-                </ol>
-              </div>
-            </aside>
-            ) : null}
-          </div>
+                {isSubmitting && (
+                  <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V4a10 10 0 00-10 10h4z" />
+                  </svg>
+                )}
+                {isSubmitting
+                  ? "Submitting..."
+                  : isEmbedAccessLoading
+                    ? "Validating Embed..."
+                    : isPricingLoading
+                      ? "Loading Pricing..."
+                      : "Get my estimate"}
+              </button>
+            </div>
+          </form>
         </section>
       </div>
     </main>
